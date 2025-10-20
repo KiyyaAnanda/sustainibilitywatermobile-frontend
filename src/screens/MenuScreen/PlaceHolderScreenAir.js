@@ -1,40 +1,37 @@
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-  StatusBar,
-  Image,
-  Pressable,
-  Switch,
-} from "react-native";
+import { Entypo, FontAwesome, FontAwesome6, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
+import LottieView from "lottie-react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  MaterialIcons,
-  FontAwesome,
-  Entypo,
-  Ionicons,
-  FontAwesome6,
-} from "@expo/vector-icons";
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import { useFocusEffect } from "@react-navigation/native";
-import LottieView from "lottie-react-native";
-import ButtonAdd from "../../components/ButtonAdd";
+  Dimensions,
+  Image,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import FotoProfile from "../../assets/picturePng/FotoProfile.png";
-import LokasiSensorTab from "../../tabs/tabAir/MasterLokasiSensor/LokasiSensorTab";
-import KomponenAirTab from "../../tabs/tabAir/MasterKomponenAir/KomponenAirTab";
-import EvaluasiTargetTab from "../../tabs/tabAir/MasterEvaluasiTarget/EvaluasiTargetTab";
-import PenggunaanAirTab from "../../tabs/tabAir/TransaksiPenggunaanAir/PenggunaanAirTab";
-import HeaderUser from "../../components/Header";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Filter from "../../components/Filter";
+import ButtonAdd from "../../components/ButtonAdd";
 import DropDown from "../../components/DropDown";
-import { postUser, API_URL } from "../../services/apiService"; // Pastikan path ini sesuai dengan struktur project kamu
+import Filter from "../../components/Filter";
+import HeaderUser from "../../components/Header";
+import { API_URL, postUser } from "../../services/apiService"; // Pastikan path ini sesuai dengan struktur project kamu
+import EvaluasiTargetTab from "../../tabs/tabAir/MasterEvaluasiTarget/EvaluasiTargetTab";
+import KomponenAirTab from "../../tabs/tabAir/MasterKomponenAir/KomponenAirTab";
+import LokasiSensorTab from "../../tabs/tabAir/MasterLokasiSensor/LokasiSensorTab";
 import KontrolKomponenAirTab from "../../tabs/tabAir/TransaksiKontrolKomponenAir/KontrolKomponenAirTab";
+import PenggunaanAirTab from "../../tabs/tabAir/TransaksiPenggunaanAir/PenggunaanAirTab";
+
+const { width, height } = Dimensions.get("window");
 
 const PlaceHolderScreenAir = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -98,53 +95,23 @@ const PlaceHolderScreenAir = () => {
   const tabs = [
     {
       name: t("master_sensor_location"),
-      icon: (isActive) => (
-        <FontAwesome6
-          name="map-location-dot"
-          size={24}
-          color={isActive ? "#0455cc" : "white"}
-        />
-      ),
+      icon: (isActive) => <FontAwesome6 name="map-location-dot" size={24} color={isActive ? "#0455cc" : "white"} />,
     },
     {
       name: t("sensor_water"),
-      icon: (isActive) => (
-        <Ionicons
-          name="water"
-          size={24}
-          color={isActive ? "#0455cc" : "white"}
-        />
-      ),
+      icon: (isActive) => <Ionicons name="water" size={24} color={isActive ? "#0455cc" : "white"} />,
     },
     {
       name: t("target_evaluation"),
-      icon: (isActive) => (
-        <FontAwesome
-          name="fire"
-          size={24}
-          color={isActive ? "#0455cc" : "white"}
-        />
-      ),
+      icon: (isActive) => <FontAwesome name="fire" size={24} color={isActive ? "#0455cc" : "white"} />,
     },
     {
       name: t("water_usage"),
-      icon: (isActive) => (
-        <FontAwesome
-          name="bar-chart"
-          size={24}
-          color={isActive ? "#0455cc" : "white"}
-        />
-      ),
+      icon: (isActive) => <FontAwesome name="bar-chart" size={24} color={isActive ? "#0455cc" : "white"} />,
     },
     {
       name: t("preventive_maintenance"),
-      icon: (isActive) => (
-        <FontAwesome
-          name="wrench"
-          size={24}
-          color={isActive ? "#0455cc" : "white"}
-        />
-      ),
+      icon: (isActive) => <FontAwesome name="wrench" size={24} color={isActive ? "#0455cc" : "white"} />,
     },
   ];
 
@@ -298,25 +265,20 @@ const PlaceHolderScreenAir = () => {
 
   if (!userProfile) {
     return (
-      <LinearGradient
-        colors={["#0973FF", "#054599"]}
-        style={[stylesLoading.container, { justifyContent: "center" }]}
-      >
+      <LinearGradient colors={["#0973FF", "#054599"]} style={[stylesLoading.container, { justifyContent: "center" }]}>
         <LottieView
           source={require("../../assets/lottieAnimation/CuteBoyRunning_Loading.json")}
           autoPlay
           loop
           style={{ width: 150, height: 150 }}
         />
-        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>
-          {t("loading")}
-        </Text>
+        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>{t("loading")}</Text>
       </LinearGradient>
     );
   } else {
     return (
       <LinearGradient colors={["#0973FF", "#054599"]} style={styles.gradient}>
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
           {/* Header Section */}
           <LinearGradient colors={["#0973FF", "#054599"]} style={styles.header}>
             {/* <HeaderUser
@@ -370,9 +332,7 @@ const PlaceHolderScreenAir = () => {
                 placeholder="Cari layanan atau informasi..."
                 placeholderTextColor="#999"
                 value={searchParams.query}
-                onChangeText={(text) =>
-                  setSearchParams((prev) => ({ ...prev, query: text, page: 1 }))
-                }
+                onChangeText={(text) => setSearchParams((prev) => ({ ...prev, query: text, page: 1 }))}
               />
               <View style={styles.filterWrapper}>
                 <Filter>
@@ -453,32 +413,17 @@ const PlaceHolderScreenAir = () => {
             </View>
 
             {/* Feature Cards */}
-            <ScrollView
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              pagingEnabled={true}
-            >
+            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} pagingEnabled={true}>
               <View style={styles.featureCards}>
                 {tabs.map((tab, index) => {
                   const isActive = activeTab === index;
                   return (
                     <TouchableOpacity
                       key={index}
-                      style={[
-                        styles.featureCard,
-                        isActive && styles.featureCardActive,
-                      ]}
-                      onPress={() => setActiveTab(index)}
-                    >
+                      style={[styles.featureCard, isActive && styles.featureCardActive]}
+                      onPress={() => setActiveTab(index)}>
                       {tab.icon(isActive)}
-                      <Text
-                        style={[
-                          styles.featureText,
-                          isActive && styles.featureTextActive,
-                        ]}
-                      >
-                        {tab.name}
-                      </Text>
+                      <Text style={[styles.featureText, isActive && styles.featureTextActive]}>{tab.name}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -487,15 +432,12 @@ const PlaceHolderScreenAir = () => {
           </LinearGradient>
 
           {/* Main Content */}
-          <ScrollView
-            style={styles.mainContent}
-            showsVerticalScrollIndicator={false}
-          >
+          <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>
             {renderActiveTabContent()}
           </ScrollView>
 
           {/* Bottom Navigation */}
-        </SafeAreaView>
+        </View>
       </LinearGradient>
     );
   }

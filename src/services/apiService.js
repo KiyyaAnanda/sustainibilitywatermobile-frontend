@@ -14,7 +14,7 @@ import axios from "axios";
 // export const API_URL = "https://sia-pt.polytechnic.astra.ac.id/stn-air/";
 
 // Wifi Daffa
-export const API_URL = "http://192.168.1.9:5255/";
+export const API_URL = "http://192.168.1.12:5255/";
 
 const apiClient = axios.create({
   baseURL: API_URL,

@@ -1,32 +1,31 @@
-import React, { useState, useEffect, useCallback } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
 import LottieView from "lottie-react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  View,
-  Text,
-  TouchableOpacity,
+  Alert,
+  Animated,
+  Dimensions,
+  Image,
   ScrollView,
   StyleSheet,
-  Image,
+  Text,
   TextInput,
-  Alert,
-  Dimensions,
-  Animated,
+  TouchableOpacity,
+  View,
 } from "react-native";
-const { height } = Dimensions.get("window");
+import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import { LinearGradient } from "expo-linear-gradient";
+import town from "../../assets//picturePng/Town.png";
+import waterAnimation from "../../assets/animations/Wave Progress.json";
 import MIpng from "../../assets/picturePng/Manajemen-informatika.png";
-import { useFocusEffect } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { postUser } from "../../services/apiService";
 import { APPLICATION_ID } from "../../Util/Constants";
-import town from "../../assets//picturePng/Town.png";
-import { useNavigation } from "@react-navigation/native";
-import waterAnimation from "../../assets/animations/Wave Progress.json";
-import { useRef } from "react";
+const { height } = Dimensions.get("window");
 
-export default function EditReplacePasswordScreen() {
+const EditReplacePasswordScreen = ({ navigation }) => {
   const { t } = useTranslation();
   const navigate = useNavigation();
 
@@ -115,10 +114,7 @@ export default function EditReplacePasswordScreen() {
         newPassword: newPassword,
       };
 
-      const result = await postUser(
-        "MasterProfile/ChangePasswordProfile",
-        payload
-      );
+      const result = await postUser("MasterProfile/ChangePasswordProfile", payload);
 
       const parsed = typeof result === "string" ? JSON.parse(result) : result;
 
@@ -145,36 +141,31 @@ export default function EditReplacePasswordScreen() {
   if (!userProfile) {
     return (
       <View style={styles.container}>
-        <Text style={{ color: "#fff", marginTop: 100, textAlign: "center" }}>
-          Memuat profil...
-        </Text>
+        <Text style={{ color: "#fff", marginTop: 100, textAlign: "center" }}>Memuat profil...</Text>
       </View>
     );
   } else {
     return (
-      <LinearGradient
-        colors={["#0973FF", "#054599"]}
-        style={styles.gradientContainer}
-      >
-        <Text style={styles.header}>{t("change_password")}</Text>
-        <TouchableOpacity
-          style={{ bottom: "27", left: "35" }}
-          onPress={() => navigate.goBack()}
-        >
+      // <SafeAreaView style={{ flex: 1 }}>
+      <LinearGradient colors={["#0973FF", "#054599"]} style={styles.gradientContainer}>
+        {/* <TouchableOpacity style={{ bottom: "27", left: "35" }} onPress={() => navigate.goBack()}>
           <Icon name="arrow-back" size={24} color="#fff" />
+          <Text style={styles.backText}>{t("back")}</Text>
+        </TouchableOpacity> */}
+
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={24} color="#fff" />
+          <Text style={styles.backText}>{t("back")}</Text>
         </TouchableOpacity>
+
+        <Text style={styles.title}>{t("change_password")}</Text>
+
         <View style={{ width: "100%", alignItems: "center" }}>
-          <Image
-            source={town}
-            style={{ width: 340, height: 340, marginLeft: 30, marginTop: -70 }}
-          />
+          <Image source={town} style={{ width: 340, height: 340, marginLeft: 30, marginTop: -70 }} />
         </View>
         <View style={styles.container}>
           <View style={styles.scrollWrapper}>
-            <ScrollView
-              contentContainerStyle={styles.scrollContent}
-              keyboardShouldPersistTaps="handled"
-            >
+            <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
               <View style={styles.passwordContainer}>
                 <Text style={styles.sectionTitle}>{t("changes_password")}</Text>
 
@@ -191,44 +182,30 @@ export default function EditReplacePasswordScreen() {
                   onChangeText={(text) => setConfirmPassword(text)}
                 />
 
-                <TouchableOpacity
-                  style={styles.saveButton}
-                  onPress={handleChangePassword}
-                >
-                  <Text style={styles.saveButtonText}>
-                    {t("save_password")}
-                  </Text>
+                <TouchableOpacity style={styles.saveButton} onPress={handleChangePassword}>
+                  <Text style={styles.saveButtonText}>{t("save_password")}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
             {!showTransition && (
-              <Animated.View
-                style={[styles.waterAnimation, { transform: [{ translateY }] }]}
-              >
-                <LottieView
-                  source={waterAnimation}
-                  autoPlay
-                  loop
-                  style={{ width: "100%", height: "100%" }}
-                />
+              <Animated.View style={[styles.waterAnimation, { transform: [{ translateY }] }]}>
+                <LottieView source={waterAnimation} autoPlay loop style={{ width: "100%", height: "100%" }} />
               </Animated.View>
             )}
           </View>
           {showTransition && (
             <View style={styles.waterAnimationTransition}>
-              <LottieView
-                source={waterAnimation}
-                autoPlay
-                loop
-                style={{ width: "360%", height: 1200 }}
-              />
+              <LottieView source={waterAnimation} autoPlay loop style={{ width: "360%", height: 1200 }} />
             </View>
           )}
         </View>
       </LinearGradient>
+      // </SafeAreaView>
     );
   }
-}
+};
+
+export default EditReplacePasswordScreen;
 
 const styles = StyleSheet.create({
   waterAnimation: {
@@ -283,7 +260,7 @@ const styles = StyleSheet.create({
   gradientContainer: {
     flex: 1,
     paddingTop: 50,
-    paddingHorizontal: 0,
+    // paddingHorizontal: 0,
   },
   header: {
     fontSize: 24,
@@ -361,5 +338,36 @@ const styles = StyleSheet.create({
     height: height * 0.7 * 0.75,
     overflow: "hidden", // tambahkan ini!
     position: "relative", // supaya absolute anak (Lottie) berfungsi dengan benar
+  },
+  backText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: "#FFFFFF",
+    fontWeight: "600",
+  },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 20,
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#fff",
+    textAlign: "center",
+    marginBottom: 30,
+  },
+  saveButton: {
+    backgroundColor: "#054599",
+    paddingVertical: 14,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  saveButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });

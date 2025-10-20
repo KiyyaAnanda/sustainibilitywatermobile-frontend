@@ -5,7 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import LottieView from "lottie-react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Button, Dimensions, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import DropdownAlert from "react-native-dropdownalert";
 import FlashMessage, { showMessage } from "react-native-flash-message";
 import FotoProfile from "../../assets/picturePng/FotoProfile.png";
@@ -14,6 +14,8 @@ import HeaderUser from "../../components/Header";
 import { API_URL, postUser } from "../../services/apiService";
 import HomeTabAir from "../../tabs/tabHome/HomeAirTab";
 import { APPLICATION_ID } from "../../Util/Constants";
+
+const { width, height } = Dimensions.get("window");
 
 const PlaceholderScreenHome = () => {
   const dropDownAlertRef = useRef(null);
@@ -108,10 +110,11 @@ const PlaceholderScreenHome = () => {
     );
   } else {
     return (
-      <View style={{ flex: 1 }}>
-        <FlashMessage position="top" />
-        <LinearGradient colors={["#0973FF", "#054599"]} style={styles.container} locations={[0, 0.5]}>
-          {/* <HeaderUser
+      <>
+        <View style={{ flex: 1 }}>
+          <FlashMessage position="top" />
+          <LinearGradient colors={["#0973FF", "#054599"]} style={styles.container} locations={[0, 0.5]}>
+            {/* <HeaderUser
           photoSource={
             user?.foto
               ? { uri: `${API_URL}/UploadProfile/${user.foto}` }
@@ -123,64 +126,65 @@ const PlaceholderScreenHome = () => {
             console.log("Logout ditekan");
           }}
         /> */}
-          <HeaderUser
-            photoSource={{
-              uri:
-                userProfile.usc_foto !== null
-                  ? //user?.foto
-                    `${API_URL}Uploads/${userProfile.usc_foto}`
-                  : `${API_URL}Uploads/fotonotfound.jpg`,
-            }}
-            name={user?.nama || "Guest"}
-            role={user?.role || "No Role"}
-            onLogout={async () => {
-              try {
-                await AsyncStorage.removeItem("activeUser");
-                navigation.navigate("LoginScreen");
-              } catch (error) {
-                console.error("Gagal logout:", error);
-              }
-            }}
-          />
-          {/* IMAGE SVG TRIO HOME ASTRA */}
-          <View style={{ width: "100%", alignItems: "center" }}>
-            <Image
-              source={TrioHomeAstraPng}
-              style={{
-                width: 220,
-                height: 100,
-                marginBottom: -5,
-                marginTop: 0,
+            <HeaderUser
+              photoSource={{
+                uri:
+                  userProfile.usc_foto !== null
+                    ? //user?.foto
+                      `${API_URL}Uploads/${userProfile.usc_foto}`
+                    : `${API_URL}Uploads/fotonotfound.jpg`,
+              }}
+              name={user?.nama || "Guest"}
+              role={user?.role || "No Role"}
+              onLogout={async () => {
+                try {
+                  await AsyncStorage.removeItem("activeUser");
+                  navigation.navigate("LoginScreen");
+                } catch (error) {
+                  console.error("Gagal logout:", error);
+                }
               }}
             />
-          </View>
-          {/* KOTAK PUTIH DI TENGAH */}
-          <View style={styles.cardBlue}>
-            <View style={styles.circleRow}>
-              <View style={styles.circleTopRight} />
-              <View style={styles.circleTopLeft} />
+            {/* IMAGE SVG TRIO HOME ASTRA */}
+            <View style={{ width: "100%", alignItems: "center" }}>
+              <Image
+                source={TrioHomeAstraPng}
+                style={{
+                  width: 220,
+                  height: 100,
+                  marginBottom: -5,
+                  marginTop: 0,
+                }}
+              />
             </View>
-            <View style={styles.buttonRow}>
-              <Pressable
-                style={[styles.toggleButtonAir, activeTab === "Air" ? styles.activeButton : styles.inactiveButton]}
-                onPress={() => setActiveTab("Air")}>
-                <Entypo name="water" size={24} color={activeTab === "Air" ? "#0973FF" : "white"} />
-              </Pressable>
+            {/* KOTAK PUTIH DI TENGAH */}
+            <View style={styles.cardBlue}>
+              <View style={styles.circleRow}>
+                <View style={styles.circleTopRight} />
+                <View style={styles.circleTopLeft} />
+              </View>
+              <View style={styles.buttonRow}>
+                <Pressable
+                  style={[styles.toggleButtonAir, activeTab === "Air" ? styles.activeButton : styles.inactiveButton]}
+                  onPress={() => setActiveTab("Air")}>
+                  <Entypo name="water" size={24} color={activeTab === "Air" ? "#0973FF" : "white"} />
+                </Pressable>
 
-              <Pressable
-                style={[
-                  styles.toggleButtonListrik,
-                  activeTab === "Listrik" ? styles.activeButton : styles.inactiveButton,
-                ]}
-                onPress={() => setActiveTab("Listrik")}>
-                <MaterialIcons name="electric-bolt" size={24} color={activeTab === "Listrik" ? "#0973FF" : "white"} />
-              </Pressable>
+                <Pressable
+                  style={[
+                    styles.toggleButtonListrik,
+                    activeTab === "Listrik" ? styles.activeButton : styles.inactiveButton,
+                  ]}
+                  onPress={() => setActiveTab("Listrik")}>
+                  <MaterialIcons name="electric-bolt" size={24} color={activeTab === "Listrik" ? "#0973FF" : "white"} />
+                </Pressable>
+              </View>
+
+              <View style={styles.cardWhite}>{renderContent()}</View>
             </View>
-
-            <View style={styles.cardWhite}>{renderContent()}</View>
-          </View>
-        </LinearGradient>
-      </View>
+          </LinearGradient>
+        </View>
+      </>
     );
   }
 };
@@ -223,7 +227,7 @@ const stylesAvatar = StyleSheet.create({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
+    paddingTop: height * 0.05,
     alignItems: "center",
   },
   header: {
@@ -259,14 +263,16 @@ const styles = StyleSheet.create({
   },
   cardBlue: {
     width: "100%",
-    height: "80%",
+    height: height * 0.7,
     backgroundColor: "#0973FF",
     borderRadius: 25,
     alignItems: "center",
-    paddingTop: 20,
-    paddingLeft: 15,
-    paddingRight: 15,
-    paddingBottom: 20,
+    // paddingLeft: 15,
+    // paddingRight: 15,
+    paddingTop: 15,
+    paddingBottom: 30,
+    paddingHorizontal: width * 0.04,
+    // paddingVertical: height * 0.03,
     marginTop: 0,
   },
   cardWhite: {
