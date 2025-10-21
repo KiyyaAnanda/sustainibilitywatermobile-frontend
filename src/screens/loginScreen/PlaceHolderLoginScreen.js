@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Modal,
   FlatList,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -283,7 +284,10 @@ const styles = StyleSheet.create({
   },
   curvedRectangle: {
     width: width,
-    height: height * 0.73,
+    height: Platform.select({
+      ios: height * 0.72,
+      android: height * 0.75, // Sedikit lebih tinggi untuk Android
+    }),
     backgroundColor: "#fff",
     borderTopLeftRadius: 60,
     borderTopRightRadius: 60,
@@ -303,12 +307,16 @@ const styles = StyleSheet.create({
   },
   form: {
     flex: 1,
-    marginTop: 60,
+    marginTop: Platform.select({
+      ios: 60,
+      android: 40, // Kurangi margin top di Android
+    }),
     backgroundColor: "#fff",
     borderTopLeftRadius: 55,
     borderTopRightRadius: 55,
     padding: 25,
     justifyContent: "space-between",
+    paddingBottom: Platform.OS === "android" ? 50 : 40,
   },
   label: {
     fontFamily: "Poppins-Bold", // <-- pakai Poppins reguler

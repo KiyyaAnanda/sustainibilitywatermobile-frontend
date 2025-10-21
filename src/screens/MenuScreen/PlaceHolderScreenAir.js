@@ -10,7 +10,6 @@ import {
   Image,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -20,6 +19,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import FotoProfile from "../../assets/picturePng/FotoProfile.png";
 import ButtonAdd from "../../components/ButtonAdd";
 import DropDown from "../../components/DropDown";
@@ -433,7 +433,8 @@ const PlaceHolderScreenAir = () => {
           </LinearGradient>
 
           {/* Main Content */}
-          <ScrollView style={styles.mainContent}
+          <ScrollView
+            style={styles.mainContent}
             contentContainerStyle={{ paddingBottom: 25 }}
             showsVerticalScrollIndicator={false}>
             {renderActiveTabContent()}
