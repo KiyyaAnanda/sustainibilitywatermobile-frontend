@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import {
   Dimensions,
   Image,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -432,7 +433,9 @@ const PlaceHolderScreenAir = () => {
           </LinearGradient>
 
           {/* Main Content */}
-          <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>
+          <ScrollView style={styles.mainContent}
+            contentContainerStyle={{ paddingBottom: 25 }}
+            showsVerticalScrollIndicator={false}>
             {renderActiveTabContent()}
           </ScrollView>
 
@@ -493,6 +496,7 @@ const stylesLoading = StyleSheet.create({
 const styles = StyleSheet.create({
   gradient: {
     flex: 1,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   container: {
     flex: 1,

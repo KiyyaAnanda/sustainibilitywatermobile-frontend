@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   },
   cardBlue: {
     width: "100%",
-    height: height * 0.7,
+    height: height * 0.75,
     backgroundColor: "#0973FF",
     borderRadius: 25,
     alignItems: "center",
