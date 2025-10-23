@@ -6,7 +6,7 @@ import axios from "axios";
 // const API_URL = "http://10.1.51.114:5255/";
 
 //WIFI Astra
-export const API_URL = "http://10.1.17.235:5255/";
+export const API_URL = "http://10.1.4.145:5255/";
 
 // WIFI Zidan
 //export const API_URL = "http://10.127.212.240:5255/";

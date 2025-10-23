@@ -23,7 +23,7 @@ import FormLayoutHistory from "../../../components/FormLayoutHistory";
 
 // Styles and API
 import { stylesB, stylesDetail } from "../../../styles/globalStyles";
-import { postUser } from "../../../services/apiService";
+import { postUser, postUserArray } from "../../../services/apiService";
 import { formatDateOnly } from "../../../Util/Formatting";
 
 const LokasiSensorDetail = () => {
@@ -57,7 +57,7 @@ const LokasiSensorDetail = () => {
       const fetchData = async () => {
         setIsError({ error: false, message: "" });
         try {
-          const data = await postUser("MasterLokasi/DetailLokasi", { id });
+          const data = await postUserArray("MasterLokasi/DetailLokasi", { id });
 
           if (!data || data === "ERROR" || data.length === 0) {
             throw new Error("Gagal mengambil data target.");
@@ -74,7 +74,7 @@ const LokasiSensorDetail = () => {
       const fetchDataKomponenByLokasi = async () => {
         setIsError({ error: false, message: "" });
         try {
-          const data = await postUser("MasterLokasi/GetDataKomponenByLokasi", {
+          const data = await postUserArray("MasterLokasi/GetDataKomponenByLokasi", {
             id,
           });
           console.log("Data Komponen Lokasi:", data);
@@ -108,7 +108,7 @@ const LokasiSensorDetail = () => {
         {
           text: "Ya",
           onPress: () => {
-            postUser("MasterLokasi/SetStatusLokasi", { id }).then((data) => {
+            postUserArray("MasterLokasi/SetStatusLokasi", { id }).then((data) => {
               if (data === "ERROR" || data.length === 0) {
                 Alert.alert("Gagal", "Data gagal mengubah status.", [
                   { text: "OK", onPress: () => navigation.goBack() },
