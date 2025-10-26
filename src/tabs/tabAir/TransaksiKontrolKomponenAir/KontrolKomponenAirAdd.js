@@ -18,7 +18,7 @@ import FormLayout from "../../../components/FormLayout";
 import { stylesB } from "../../../styles/globalStyles";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as yup from "yup";
-import { postUser } from "../../../services/apiService";
+import { postUser, postUserArray } from "../../../services/apiService";
 import { validateAllInputs, validateInput } from "../../../Util/ValdiationForm";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateInputPicker from "../../../components/DateInputPicker";
@@ -77,7 +77,7 @@ const KontrolKomponenAirAdd = () => {
           lokasi: "",
           sortBy: "[Nomor Komponen]",
         };
-        const data = await postUser(
+        const data = await postUserArray(
           "TransaksiKontrolKomponenAir/GetDataKomponenAirByBocor",
           filter
         );
@@ -112,7 +112,7 @@ const KontrolKomponenAirAdd = () => {
           formDataRef.current.user = user.username;
         }
         try {
-          await postUser(
+          await postUserArray(
             "TransaksiKontrolKomponenAir/UpdateStatusTrsKontrolKomponenAir",
             {}
           );
@@ -151,7 +151,7 @@ const KontrolKomponenAirAdd = () => {
       try {
         console.log("🚀 Data yang dikirim:", formDataRef.current); // Tambahkan log debug
 
-        const data = await postUser(
+        const data = await postUserArray(
           "TransaksiKontrolKomponenAir/CreateTrsKontrolKomponenAir",
           formDataRef.current
         );

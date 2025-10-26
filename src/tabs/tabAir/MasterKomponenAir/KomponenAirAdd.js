@@ -8,7 +8,7 @@ import Input from "../../../components/Input";
 import DropDownForm from "../../../components/DropDownForm";
 import Button from "../../../components/Button";
 import { stylesB } from "../../../styles/globalStyles";
-import { postUser } from "../../../services/apiService";
+import { postUser, postUserArray } from "../../../services/apiService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import MapView, { Marker } from "react-native-maps";
 import MapPickerModal from "../../../components/Maps";
@@ -57,7 +57,7 @@ const KomponenAirAdd = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const result = await postUser("MasterLokasi/GetListLokasi", {});
+        const result = await postUserArray("MasterLokasi/GetListLokasi", {});
         if (!Array.isArray(result))
           throw new Error("Format data lokasi tidak sesuai");
         const list = result.map((item) => ({
@@ -139,7 +139,7 @@ const KomponenAirAdd = () => {
       };
 
       setIsLoading(true);
-      const res = await postUser(
+      const res = await postUserArray(
         "MasterKomponenAir/CreateKomponenAirMobile",
         dataToSend
       );

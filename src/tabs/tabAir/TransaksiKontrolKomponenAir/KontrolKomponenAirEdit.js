@@ -18,7 +18,7 @@ import FormLayout from "../../../components/FormLayout";
 import { stylesB } from "../../../styles/globalStyles";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as yup from "yup";
-import { postUser } from "../../../services/apiService";
+import { postUser, postUserArray } from "../../../services/apiService";
 import { validateAllInputs, validateInput } from "../../../Util/ValdiationForm";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateInputPicker from "../../../components/DateInputPicker";
@@ -75,7 +75,7 @@ const KontrolKomponenAirEdit = ({}) => {
   useEffect(() => {
     const fetchDataById = async () => {
       try {
-        const data = await postUser(
+        const data = await postUserArray(
           "TransaksiKontrolKomponenAir/GetDataTrsKontrolKomponenAirById",
           { id: id }
         );
@@ -124,7 +124,7 @@ const KontrolKomponenAirEdit = ({}) => {
 
       try {
         setIsPageLoading(true);
-        const response = await postUser(
+        const response = await postUserArray(
           "TransaksiKontrolKomponenAir/GetStatusKomponenAir",
           { selectedKomponenId: formDataRef.current.komponen }
         );
@@ -164,7 +164,7 @@ const KontrolKomponenAirEdit = ({}) => {
           sortBy: "[Nomor Komponen]",
           selectedKomponenId: formDataRef.current.komponen,
         };
-        const data = await postUser(
+        const data = await postUserArray(
           "TransaksiKontrolKomponenAir/GetDataKomponenAirByBocor",
           filter
         );
@@ -255,7 +255,7 @@ const KontrolKomponenAirEdit = ({}) => {
 
               console.log("🚀 Data yang dikirim:", perbaikanPayload);
 
-              const data = await postUser(
+              const data = await postUserArray(
                 "TransaksiKontrolKomponenAir/UpdateTrsKontrolKomponenAir",
                 perbaikanPayload
               );
@@ -264,7 +264,7 @@ const KontrolKomponenAirEdit = ({}) => {
                 throw new Error("Gagal menyimpan data target.");
               }
 
-              await postUser(
+              await postUserArray(
                 "TransaksiKontrolKomponenAir/UpdateStatusTrsKontrolKomponenAir",
                 {}
               );
@@ -313,7 +313,7 @@ const KontrolKomponenAirEdit = ({}) => {
       try {
         console.log("🚀 Payload yang dikirim:", selesaiPayload);
 
-        const data = await postUser(
+        const data = await postUserArray(
           "TransaksiKontrolKomponenAir/UpdateStatusSelesaiDeskripsiKontrolKomponenAir",
           selesaiPayload
         );
@@ -321,7 +321,7 @@ const KontrolKomponenAirEdit = ({}) => {
         if (data === "ERROR") {
           throw new Error("Gagal menyimpan data.");
         } else {
-          await postUser(
+          await postUserArray(
             "TransaksiKontrolKomponenAir/UpdateStatusTrsKontrolKomponenAir",
             {}
           );

@@ -22,7 +22,7 @@ import FormLayout from "../../../components/FormLayout";
 import { stylesB } from "../../../styles/globalStyles";
 import * as yup from "yup";
 import { validateAllInputs, validateInput } from "../../../Util/ValdiationForm";
-import { postUser } from "../../../services/apiService";
+import { postUser, postUserArray } from "../../../services/apiService";
 
 const EvaluasiTargetAdd = () => {
   const navigation = useNavigation();
@@ -137,7 +137,7 @@ const EvaluasiTargetAdd = () => {
         delete dataToSend.bulan;
         delete dataToSend.tahun;
 
-        const data = await postUser(
+        const data = await postUserArray(
           "MasterEvaluasiTarget/CreateEvaluasiTarget",
           dataToSend
         );

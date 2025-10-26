@@ -22,7 +22,7 @@ import FormLayout from "../../../components/FormLayout";
 import { stylesB } from "../../../styles/globalStyles";
 import * as yup from "yup";
 import { validateAllInputs, validateInput } from "../../../Util/ValdiationForm";
-import { postUser } from "../../../services/apiService";
+import { postUser, postUserArray } from "../../../services/apiService";
 
 const EvaluasiTargetEdit = () => {
   const { t } = useTranslation();
@@ -105,7 +105,7 @@ const EvaluasiTargetEdit = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await postUser(
+        const data = await postUserArray(
           "MasterEvaluasiTarget/GetDataEvaluasiTargetById",
           {
             idEvaluasiTarget: id,
@@ -178,7 +178,7 @@ const EvaluasiTargetEdit = () => {
         delete formDataRef.current.bulan;
         delete formDataRef.current.tahun;
 
-        const data = await postUser(
+        const data = await postUserArray(
           "MasterEvaluasiTarget/EditEvaluasiTarget",
           formDataRef.current
         );

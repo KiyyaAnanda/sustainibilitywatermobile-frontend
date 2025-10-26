@@ -59,7 +59,7 @@ const KontrolKomponenAirTab = ({ searchQuery }) => {
           ); // kirim body kosong
           setUserData(Array.isArray(data) ? data : []);
           try {
-            await postUser("TransaksiKontrolKomponenAir/UpdateStatusTrsKontrolKomponenAir", {});
+            await postUserArray("TransaksiKontrolKomponenAir/UpdateStatusTrsKontrolKomponenAir", {});
           } catch (error) {
             console.error("Gagal menjalankan update status:", error);
           }

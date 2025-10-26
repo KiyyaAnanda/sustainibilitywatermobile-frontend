@@ -10,7 +10,7 @@ import { stylesB } from "../../../styles/globalStyles";
 import * as yup from "yup";
 import { validateAllInputs, validateInput } from "../../../Util/ValdiationForm";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { postUser } from "../../../services/apiService";
+import { postUser, postUserArray } from "../../../services/apiService";
 
 const LokasiSensorEdit = () => {
   const navigation = useNavigation();
@@ -55,7 +55,7 @@ const LokasiSensorEdit = () => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const data = await postUser("MasterLokasi/GetDataLokasiById", {
+        const data = await postUserArray("MasterLokasi/GetDataLokasiById", {
           lks_idSensor: id,
         });
 
@@ -128,7 +128,7 @@ const LokasiSensorEdit = () => {
           createBy: user ? user.usc_nama : "unknown",
         };
 
-        const response = await postUser("MasterLokasi/EditLokasi", payload);
+        const response = await postUserArray("MasterLokasi/EditLokasi", payload);
         if (response === "ERROR") {
           throw new Error("Gagal menyimpan perubahan lokasi.");
         }
