@@ -59,7 +59,7 @@ const KontrolKomponenAirTab = ({ searchQuery }) => {
               status: searchParams.status,
             }
           ); // kirim body kosong
-          setUserData(data);
+          setUserData(Array.isArray(data) ? data : []);
           try {
             await postUser(
               "TransaksiKontrolKomponenAir/UpdateStatusTrsKontrolKomponenAir",

@@ -56,7 +56,7 @@ const EvaluasiTargetTab = ({ searchQuery }) => {
               sort: searchParams.sort,
             }
           ); // kirim body kosong
-          setUserData(data);
+          setUserData(Array.isArray(data) ? data : []);
         } catch (error) {
           console.error("Gagal mengambil data:", error);
         } finally {
