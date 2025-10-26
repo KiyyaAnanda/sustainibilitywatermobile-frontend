@@ -26,7 +26,7 @@ const EvaluasiTargetTab = ({ searchQuery }) => {
     sort: "[Jumlah Individu] asc",
   });
 
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState([]);
   useEffect(() => {
     // panggil fungsi fetch / reload data berdasarkan searchQuery
     console.log("EvaluasiTargetTab sensor " + searchParams.query);
