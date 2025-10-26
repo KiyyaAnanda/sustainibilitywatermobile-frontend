@@ -48,13 +48,16 @@ const KontrolKomponenAirTab = ({ searchQuery }) => {
       const loadUser = async () => {
         try {
           setLoading(true);
-          const data = await postUserArray("TransaksiKontrolKomponenAir/GetDataTrsKontrolKomponenAir", {
-            page: searchParams.page,
-            query: searchParams.query,
-            sort: searchParams.sort,
-            status: searchParams.status,
-          }); // kirim body kosong
-          setUserData(data);
+          const data = await postUser(
+            "TransaksiKontrolKomponenAir/GetDataTrsKontrolKomponenAir",
+            {
+              page: searchParams.page,
+              query: searchParams.query,
+              sort: searchParams.sort,
+              status: searchParams.status,
+            }
+          ); // kirim body kosong
+          setUserData(Array.isArray(data) ? data : []);
           try {
             await postUser("TransaksiKontrolKomponenAir/UpdateStatusTrsKontrolKomponenAir", {});
           } catch (error) {

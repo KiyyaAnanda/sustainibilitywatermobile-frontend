@@ -46,12 +46,15 @@ const EvaluasiTargetTab = ({ searchQuery }) => {
         try {
           setLoading(true);
           console.log("Muat data Evaluasi Target", searchParams);
-          const data = await postUserArray("MasterEvaluasiTarget/GetDataEvaluasiTarget", {
-            page: searchParams.page,
-            query: searchParams.query,
-            sort: searchParams.sort,
-          }); // kirim body kosong
-          setUserData(data);
+          const data = await postUser(
+            "MasterEvaluasiTarget/GetDataEvaluasiTarget",
+            {
+              page: searchParams.page,
+              query: searchParams.query,
+              sort: searchParams.sort,
+            }
+          ); // kirim body kosong
+          setUserData(Array.isArray(data) ? data : []);
         } catch (error) {
           console.error("Gagal mengambil data:", error);
         } finally {

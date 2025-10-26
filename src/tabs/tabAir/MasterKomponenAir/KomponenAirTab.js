@@ -43,7 +43,7 @@ const KomponenAirTab = ({ searchQuery }) => {
             query: searchParams.query,
             sort: searchParams.sort,
           });
-          setUserData(data);
+          setUserData(Array.isArray(data) ? data : []);
         } catch (error) {
           console.error("Gagal mengambil data:", error);
         } finally {

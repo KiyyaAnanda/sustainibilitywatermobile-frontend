@@ -55,7 +55,7 @@ const PenggunaanAirTab = ({ searchQuery }) => {
               sort: searchParams.sort,
             }
           ); // kirim body kosong
-          setDataPenggunaanAir(data);
+          setDataPenggunaanAir(Array.isArray(data) ? data : []);
         } catch (error) {
           console.error("Gagal mengambil data:", error);
         }
