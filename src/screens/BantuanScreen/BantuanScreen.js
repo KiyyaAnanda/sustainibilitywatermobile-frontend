@@ -1,33 +1,21 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import React from "react";
 import { useTranslation } from "react-i18next";
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Icon from "react-native-vector-icons/MaterialIcons";
 
 const Bantuan = ({ navigation }) => {
-   const { t } = useTranslation();
+  const { t } = useTranslation();
   return (
     <LinearGradient colors={["#0973FF", "#054599"]} style={styles.container}>
       {/* Tombol Kembali */}
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Icon name="arrow-back" size={24} color="#fff" />
         <Text style={styles.backText}>{t("back")}</Text>
       </TouchableOpacity>
 
       {/* Scrollable area: Card utama dengan semua bantuan */}
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        style={styles.scrollView}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
         <View style={styles.mainCard}>
           <Text style={styles.title}>{t("help_center")}</Text>
 
@@ -61,8 +49,8 @@ const Bantuan = ({ navigation }) => {
       {/* Bagian tetap di bawah layar */}
       <View style={styles.contactCard}>
         <Text style={styles.contactTitle}>{t("contact_us")}</Text>
-<Text style={styles.contactText}>📧 {t("contact_email")}</Text>
-<Text style={styles.contactText}>📱 {t("contact_whatsapp")}</Text>
+        <Text style={styles.contactText}>📧 {t("contact_email")}</Text>
+        <Text style={styles.contactText}>📱 {t("contact_whatsapp")}</Text>
       </View>
     </LinearGradient>
   );
@@ -89,15 +77,17 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    marginBottom: Platform.OS === "android" ? 100 : 100, // Add space for contact card
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 20, // supaya konten scroll tidak tertutup contactCard
+    paddingBottom: 20,
   },
   mainCard: {
     backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderRadius: 12,
     padding: 16,
+    marginTop: 5, // Reduce top margin
   },
   title: {
     fontSize: 24,
@@ -109,8 +99,8 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#e6f0ff",
     borderRadius: 12,
-    padding: 12,
-    marginBottom: 15,
+    padding: 10, // Slightly reduce padding
+    marginBottom: 12, // Reduce space between cards
   },
   question: {
     fontWeight: "bold",
@@ -131,7 +121,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 10,
+    elevation: 10, // Kurangi elevation agar tidak terlalu melayang
+    paddingBottom: Platform.OS === "android" ? 40 : 20,
+    position: "absolute", // Memastikan card menempel di bawah
+    bottom: 0, // Menempel di bawah
+    left: 0,
+    right: 0,
   },
   contactTitle: {
     fontSize: 16,
