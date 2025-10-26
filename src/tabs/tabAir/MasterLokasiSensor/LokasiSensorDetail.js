@@ -159,12 +159,13 @@ const LokasiSensorDetail = () => {
       <FormLayout
         source={require("../../../assets/picturePng/mVR1.png")}
         image={{
-          width: 650,
+          width: 600,
           height: 450,
           position: "absolute",
           top: 50,
           left: -100,
           zIndex: 0,
+          alignItems: "center"
         }}
         upperLabel={
           <Text
@@ -172,7 +173,6 @@ const LokasiSensorDetail = () => {
               position: "absolute",
               top: 63,
               bottom: 90,
-              width: 100,
               width: 100,
               alignSelf: "center",
               fontSize: 24,
@@ -183,7 +183,18 @@ const LokasiSensorDetail = () => {
             {t("location_details")}
           </Text>
         }
-        lowerLabel={t("location_introduction")}
+        lowerLabel={<Text
+        style={{
+          // textAlign: "center", // ✅ center horizontal
+          alignSelf: "center", // ✅ pastikan posisinya tengah container
+          width: "85%", // biar teks rapi dan tidak kepanjangan
+          color: "#FFF",
+          margin: 25, // sesuaikan posisi vertikal
+          fontSize: 14,
+        }}
+    >
+      {t("location_introduction")}
+    </Text>}
         enableScroll={true}
       >
         <View style={stylesDetail.formContainer}>
@@ -266,7 +277,7 @@ const LokasiSensorDetail = () => {
             />
           </View>
 
-          <View style={{ marginTop: 32 }}>
+          <View style={{ marginTop: 32, marginLeft: 2 }}>
             <Text style={stylesAir.sectionTitle}>
               {"🧩 " + t("location_sensor_details")}
             </Text>

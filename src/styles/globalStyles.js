@@ -137,6 +137,8 @@ export const stylesDetail = StyleSheet.create({
     marginTop: 300,
     minHeight: 700, // ✅ gunakan minHeight agar tetap tinggi minimum, tapi bisa tumbuh
     zIndex: 1,
+    // justifyContent: "center", // ✅ center secara vertikal
+    alignItems: "center", // ✅ center secara horizontal
   },
   rectangle: {
     width: 345,
