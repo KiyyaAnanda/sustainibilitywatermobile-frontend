@@ -85,7 +85,7 @@ const KomponenAirDetail = () => {
     useCallback(() => {
       const loadUser = async () => {
         try {
-          const data = await postUser(
+          const data = await postUserArray(
             "MasterKomponenAir/DetailLogKomponenAir",
             { id }
           );

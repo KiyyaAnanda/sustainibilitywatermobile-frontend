@@ -1,23 +1,15 @@
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "react-native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import ButtonAdd from "../../../components/ButtonAdd";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import styles from "../../../styles/globalStyles";
+import { ActivityIndicator, Image, Text, TouchableOpacity, View } from "react-native";
 import KomponenAirPng from "../../../assets/picturePng/KomponenAir.png";
-import SensorList from "../../../components/SensorList";
+import ButtonAdd from "../../../components/ButtonAdd";
 import InfoCard from "../../../components/InfoCard";
-import { useState, useEffect } from "react";
-import { useNavigation } from "@react-navigation/native";
 import Paging from "../../../components/Paging";
-import { useFocusEffect } from "@react-navigation/native";
-import { useCallback } from "react";
-import { postUser } from "../../../services/apiService";
+import SensorList from "../../../components/SensorList";
+import { postUser, postUserArray } from "../../../services/apiService";
+import styles from "../../../styles/globalStyles";
 
 const KomponenAirTab = ({ searchQuery }) => {
   const PAGE_SIZE = 10;
@@ -29,7 +21,7 @@ const KomponenAirTab = ({ searchQuery }) => {
     sort: searchQuery.sort,
   });
 
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -46,7 +38,7 @@ const KomponenAirTab = ({ searchQuery }) => {
       const loadUser = async () => {
         setIsLoading(true);
         try {
-          const data = await postUser("MasterKomponenAir/GetDataKomponenAir", {
+          const data = await postUserArray("MasterKomponenAir/GetDataKomponenAir", {
             page: searchParams.page,
             query: searchParams.query,
             sort: searchParams.sort,
@@ -112,11 +104,7 @@ const KomponenAirTab = ({ searchQuery }) => {
           <Paging
             pageSize={PAGE_SIZE}
             pageCurrent={searchParams.page}
-            totalData={
-              userData && userData[0] && userData[0]["Count"]
-                ? parseInt(userData[0]["Count"])
-                : 0
-            }
+            totalData={userData && userData[0] && userData[0]["Count"] ? parseInt(userData[0]["Count"]) : 0}
             navigation={handleSetCurrentPage}
           />
         </>

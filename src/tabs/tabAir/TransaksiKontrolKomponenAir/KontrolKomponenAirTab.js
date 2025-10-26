@@ -1,19 +1,17 @@
 // components/tabs/LokasiSensorTab.js
-import { View, Text, Image, TouchableOpacity } from "react-native";
-import { useTranslation } from "react-i18next";
-import LottieView from "lottie-react-native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import ButtonAdd from "../../../components/ButtonAdd";
-import styles from "../../../styles/globalStyles"; // atau sesuaikan
+import LottieView from "lottie-react-native";
+import { use, useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 import EvaluasiTargetPng from "../../../assets/picturePng/EvaluasiTarget.png";
-import SensorListStatus from "../../../components/SensorListStatus";
+import ButtonAdd from "../../../components/ButtonAdd";
 import InfoCard from "../../../components/InfoCard";
-import { useState, useEffect, use } from "react";
-import { postUser } from "../../../services/apiService";
 import Paging from "../../../components/Paging";
-import { useNavigation } from "@react-navigation/native";
-import { useFocusEffect } from "@react-navigation/native";
-import { useCallback } from "react";
+import SensorListStatus from "../../../components/SensorListStatus";
+import { postUser, postUserArray } from "../../../services/apiService";
+import styles from "../../../styles/globalStyles"; // atau sesuaikan
 
 const KontrolKomponenAirTab = ({ searchQuery }) => {
   const PAGE_SIZE = 10;
@@ -27,7 +25,7 @@ const KontrolKomponenAirTab = ({ searchQuery }) => {
     status: searchQuery.status,
   });
 
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState([]);
   useEffect(() => {
     // panggil fungsi fetch / reload data berdasarkan searchQuery
     console.log("EvaluasiTargetTab sensor " + searchParams.query);
@@ -50,21 +48,15 @@ const KontrolKomponenAirTab = ({ searchQuery }) => {
       const loadUser = async () => {
         try {
           setLoading(true);
-          const data = await postUser(
-            "TransaksiKontrolKomponenAir/GetDataTrsKontrolKomponenAir",
-            {
-              page: searchParams.page,
-              query: searchParams.query,
-              sort: searchParams.sort,
-              status: searchParams.status,
-            }
-          ); // kirim body kosong
+          const data = await postUserArray("TransaksiKontrolKomponenAir/GetDataTrsKontrolKomponenAir", {
+            page: searchParams.page,
+            query: searchParams.query,
+            sort: searchParams.sort,
+            status: searchParams.status,
+          }); // kirim body kosong
           setUserData(data);
           try {
-            await postUser(
-              "TransaksiKontrolKomponenAir/UpdateStatusTrsKontrolKomponenAir",
-              {}
-            );
+            await postUser("TransaksiKontrolKomponenAir/UpdateStatusTrsKontrolKomponenAir", {});
           } catch (error) {
             console.error("Gagal menjalankan update status:", error);
           }
@@ -89,18 +81,14 @@ const KontrolKomponenAirTab = ({ searchQuery }) => {
   }
   if (loading) {
     return (
-      <View
-        style={[{ flex: 1, justifyContent: "center", alignItems: "center" }]}
-      >
+      <View style={[{ flex: 1, justifyContent: "center", alignItems: "center" }]}>
         <LottieView
           source={require("../../../assets/lottieAnimation/CuteBoyRunning_Loading.json")}
           autoPlay
           loop
           style={{ width: 150, height: 150 }}
         />
-        <Text style={{ color: "#000", marginTop: 16, fontSize: 16 }}>
-          {t("loading")}
-        </Text>
+        <Text style={{ color: "#000", marginTop: 16, fontSize: 16 }}>{t("loading")}</Text>
       </View>
     );
   }
@@ -117,9 +105,7 @@ const KontrolKomponenAirTab = ({ searchQuery }) => {
       />
       {/* Komponen Paging */}
 
-      <Text style={styles.sectionTitle}>
-        {t("preventive_maintenance_data")}
-      </Text>
+      <Text style={styles.sectionTitle}>{t("preventive_maintenance_data")}</Text>
       <SensorListStatus
         data={
           userData
@@ -128,8 +114,7 @@ const KontrolKomponenAirTab = ({ searchQuery }) => {
                 name:
                   //item["Nomor Transaksi"] + " - " + item["Nomor Komponen"] ||
                   // `Target ${index + 1}`,
-                  item["Judul"] + " - " + item["Nomor Komponen"] ||
-                  `Target ${index + 1}`,
+                  item["Judul"] + " - " + item["Nomor Komponen"] || `Target ${index + 1}`,
                 value: item["Lokasi"] || "0",
                 status: item["Status Perbaikan"],
                 statusColor:
@@ -156,11 +141,7 @@ const KontrolKomponenAirTab = ({ searchQuery }) => {
       <Paging
         pageSize={PAGE_SIZE}
         pageCurrent={searchParams.page}
-        totalData={
-          userData && userData[0] && userData[0]["Count"]
-            ? userData[0]["Count"]
-            : 0
-        }
+        totalData={userData && userData[0] && userData[0]["Count"] ? userData[0]["Count"] : 0}
         navigation={handleSetCurrentPage}
       />
     </>

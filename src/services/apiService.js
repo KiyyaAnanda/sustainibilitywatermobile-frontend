@@ -14,10 +14,10 @@ import axios from "axios";
 //export const API_URL = "https://sia-pt.polytechnic.astra.ac.id/stn-air/";
 
 // Wifi Daffa
-// export const API_URL = "http://192.168.1.8:5255/";
+export const API_URL = "http://192.168.1.6:5255/";
 
 // Wifi Irham
-export const API_URL = "http://192.168.1.16:5255/";
+// export const API_URL = "http://192.168.1.16:5255/";
 
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -52,19 +52,27 @@ export const postUserArray = async (param, body = {}) => {
     if (typeof data === "string") {
       try {
         data = JSON.parse(data);
-        // console.log("✅ API success:", response.data);
+        console.log("✅ API success:", data);
       } catch (parseError) {
         console.error("Error parsing data:", parseError);
         return "ERROR";
       }
     }
 
+    if (data === null || data === undefined) {
+      return [];
+    }
+
     if (Array.isArray(data)) {
       return data;
-    } else {
-      console.error("❌ API response is not an array:", data);
-      return "ERROR";
     }
+
+    if (typeof data === "object") {
+      return [data];
+    }
+
+    console.error("❌ API response is not an array:", data);
+    return "ERROR";
   } catch (error) {
     console.error("❌ API call failed:", error.message);
     if (error.response) {
