@@ -1,19 +1,17 @@
 // components/tabs/LokasiSensorTab.js
-import { View, Text, Image, TouchableOpacity } from "react-native";
-import LottieView from "lottie-react-native";
-import { useTranslation } from "react-i18next";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import ButtonAdd from "../../../components/ButtonAdd";
-import styles from "../../../styles/globalStyles"; // atau sesuaikan
+import LottieView from "lottie-react-native";
+import { use, useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 import EvaluasiTargetPng from "../../../assets/picturePng/EvaluasiTarget.png";
-import SensorList from "../../../components/SensorList";
+import ButtonAdd from "../../../components/ButtonAdd";
 import InfoCard from "../../../components/InfoCard";
-import { useState, useEffect, use } from "react";
-import { postUser } from "../../../services/apiService";
 import Paging from "../../../components/Paging";
-import { useNavigation } from "@react-navigation/native";
-import { useFocusEffect } from "@react-navigation/native";
-import { useCallback } from "react";
+import SensorList from "../../../components/SensorList";
+import { postUser, postUserArray } from "../../../services/apiService";
+import styles from "../../../styles/globalStyles"; // atau sesuaikan
 
 const EvaluasiTargetTab = ({ searchQuery }) => {
   const PAGE_SIZE = 10;
@@ -78,18 +76,14 @@ const EvaluasiTargetTab = ({ searchQuery }) => {
 
   if (loading) {
     return (
-      <View
-        style={[{ flex: 1, justifyContent: "center", alignItems: "center" }]}
-      >
+      <View style={[{ flex: 1, justifyContent: "center", alignItems: "center" }]}>
         <LottieView
           source={require("../../../assets/lottieAnimation/CuteBoyRunning_Loading.json")}
           autoPlay
           loop
           style={{ width: 150, height: 150 }}
         />
-        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>
-          {t("loading")}
-        </Text>
+        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>{t("loading")}</Text>
       </View>
     );
   }
@@ -125,11 +119,7 @@ const EvaluasiTargetTab = ({ searchQuery }) => {
       <Paging
         pageSize={PAGE_SIZE}
         pageCurrent={searchParams.page}
-        totalData={
-          userData && userData[0] && userData[0]["Count"]
-            ? userData[0]["Count"]
-            : 0
-        }
+        totalData={userData && userData[0] && userData[0]["Count"] ? userData[0]["Count"] : 0}
         navigation={handleSetCurrentPage}
       />
     </>
