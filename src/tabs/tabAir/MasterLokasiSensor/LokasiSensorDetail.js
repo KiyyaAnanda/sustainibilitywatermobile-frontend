@@ -185,11 +185,10 @@ const LokasiSensorDetail = () => {
         }
         lowerLabel={<Text
         style={{
-          // textAlign: "center", // ✅ center horizontal
-          alignSelf: "center", // ✅ pastikan posisinya tengah container
-          width: "85%", // biar teks rapi dan tidak kepanjangan
+          alignSelf: "center",
+          width: "85%", 
           color: "#FFF",
-          margin: 25, // sesuaikan posisi vertikal
+          margin: 25, 
           fontSize: 14,
         }}
     >
