@@ -32,7 +32,7 @@ const LokasiSensorTab = ({ searchQuery }) => {
     status: searchQuery.status,
   });
 
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState([]);
 
   useEffect(() => {
     setSearchParams((prev) => ({

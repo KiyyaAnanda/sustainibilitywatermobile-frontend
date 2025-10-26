@@ -29,8 +29,8 @@ const KomponenAirTab = ({ searchQuery }) => {
     sort: searchQuery.sort,
   });
 
-  const [userData, setUserData] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [userData, setUserData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setSearchParams((prev) => ({

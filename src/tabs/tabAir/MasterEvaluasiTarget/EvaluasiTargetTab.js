@@ -19,7 +19,7 @@ const EvaluasiTargetTab = ({ searchQuery }) => {
   const PAGE_SIZE = 10;
   const { t } = useTranslation();
   const navigation = useNavigation();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useState({
     page: 1,
     query: searchQuery.query,
