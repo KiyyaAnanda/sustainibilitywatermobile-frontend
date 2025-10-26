@@ -629,7 +629,7 @@ const KontrolKomponenAirEdit = ({}) => {
                   textStyle={{
                     color: "#fff",
                     fontWeight: "bold",
-                    fontSize: "13",
+                    fontSize: 13,
                   }}
                 />
               ) : (
