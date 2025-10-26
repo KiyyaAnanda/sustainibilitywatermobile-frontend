@@ -48,7 +48,7 @@ const KontrolKomponenAirTab = ({ searchQuery }) => {
       const loadUser = async () => {
         try {
           setLoading(true);
-          const data = await postUser(
+          const data = await postUserArray(
             "TransaksiKontrolKomponenAir/GetDataTrsKontrolKomponenAir",
             {
               page: searchParams.page,

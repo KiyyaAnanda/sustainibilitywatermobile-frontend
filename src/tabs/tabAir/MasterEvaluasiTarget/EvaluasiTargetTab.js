@@ -46,7 +46,7 @@ const EvaluasiTargetTab = ({ searchQuery }) => {
         try {
           setLoading(true);
           console.log("Muat data Evaluasi Target", searchParams);
-          const data = await postUser(
+          const data = await postUserArray(
             "MasterEvaluasiTarget/GetDataEvaluasiTarget",
             {
               page: searchParams.page,
