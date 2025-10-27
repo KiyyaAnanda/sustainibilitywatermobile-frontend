@@ -116,7 +116,7 @@ const KontrolKomponenAirEdit = ({}) => {
   }, [id]);
 
   const [isButtonDisabled, setIsButtonDisabled] = useState(true); // buat state untuk button
-  const [komponenStatus, setKomponenStatus] = useState(null); // simpan status dari SP
+  const [komponenStatus, setKomponenStatus] = useState("normal"); // simpan status dari SP
 
   useEffect(() => {
     const fetchKomponenStatus = async () => {
@@ -357,6 +357,13 @@ const KontrolKomponenAirEdit = ({}) => {
       </View>
     );
   }
+
+  console.log("DEBUG opacity vars", {
+    isSubmitting,
+    komponenStatus,
+    typeSubmitting: typeof isSubmitting,
+    typeStatus: typeof komponenStatus,
+  });  
 
   // RENDER FORM
   return (
@@ -624,7 +631,7 @@ const KontrolKomponenAirEdit = ({}) => {
                     flex: 1,
                     marginHorizontal: 4,
                     backgroundColor: "#0973FF",
-                    opacity: isSubmitting ? 0.6 : 1,
+                    opacity: Number(isSubmitting ? 0.6 : 1),
                   }}
                   textStyle={{
                     color: "#fff",
@@ -670,7 +677,7 @@ const KontrolKomponenAirEdit = ({}) => {
                 flex: 1,
                 marginHorizontal: 4,
                 backgroundColor: "#0973FF",
-                opacity: komponenStatus === "normal" && !isSubmitting ? 1 : 0.6, // ✅ opacity saja
+                opacity: Number(komponenStatus === "normal" && !isSubmitting ? 1 : 0.6),
               }}
               textStyle={{ color: "#fff", fontWeight: "bold" }}
             />

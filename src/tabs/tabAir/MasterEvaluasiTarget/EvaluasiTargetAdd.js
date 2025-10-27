@@ -12,6 +12,7 @@ import {
   TouchableWithoutFeedback,
   Platform,
   KeyboardAvoidingView,
+  ScrollView
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import DropDown from "../../../components/DropDown";
@@ -182,6 +183,7 @@ const EvaluasiTargetAdd = () => {
     <FormLayout
       source={require("../../../assets/picturePng/EvaluasiTarget.png")}
     >
+      <ScrollView contentContainerStyle={stylesB.trformContainer}>
       <View style={stylesB.formContainer}>
         <Text style={stylesB.title}>{t("add_evaluation_target")}</Text>
 
@@ -299,6 +301,7 @@ const EvaluasiTargetAdd = () => {
           textStyle={{ color: "#fff", fontWeight: "bold" }}
         />
       </View>
+      </ScrollView>
     </FormLayout>
   );
 };

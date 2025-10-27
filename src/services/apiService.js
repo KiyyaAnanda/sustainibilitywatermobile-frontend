@@ -6,18 +6,18 @@ import axios from "axios";
 // const API_URL = "http://10.1.51.114:5255/";
 
 //WIFI Astra
-// export const API_URL = "http://10.1.4.145:5255/";
+//export const API_URL = "http://172.20.10.4:5255/";
 
 // WIFI Zidan
 //export const API_URL = "http://10.127.212.240:5255/";
 
-//export const API_URL = "https://sia-pt.polytechnic.astra.ac.id/stn-air/";
+export const API_URL = "https://sia-pt.polytechnic.astra.ac.id/stn-air/";
 
 // Wifi Daffa
-export const API_URL = "http://192.168.1.16:5255/";
+//export const API_URL = "http://192.168.1.16:5255/";
 
 // Wifi Irham
-// export const API_URL = "http://192.168.1.16:5255/";
+//export const API_URL = "http://192.168.1.16:5255/";
 
 const apiClient = axios.create({
   baseURL: API_URL,
