@@ -53,15 +53,10 @@ const MapPickerModal = ({ visible, onClose, onSelect, initialLocation }) => {
       <View style={{ flex: 1 }}>
         <MapView
           style={{ flex: 1 }}
+          provider={Platform.OS === "android" ? "google" : null}
           initialRegion={{
-            latitude:
-              initialLocation?.latitude ??
-              deviceLocation?.latitude ??
-              fallbackLocation.latitude,
-            longitude:
-              initialLocation?.longitude ??
-              deviceLocation?.longitude ??
-              fallbackLocation.longitude,
+            latitude: initialLocation?.latitude ?? deviceLocation?.latitude ?? fallbackLocation.latitude,
+            longitude: initialLocation?.longitude ?? deviceLocation?.longitude ?? fallbackLocation.longitude,
             latitudeDelta: 0.005,
             longitudeDelta: 0.005,
           }}
