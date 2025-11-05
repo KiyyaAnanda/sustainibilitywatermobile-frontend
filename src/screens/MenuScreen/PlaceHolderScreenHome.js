@@ -5,7 +5,15 @@ import { LinearGradient } from "expo-linear-gradient";
 import LottieView from "lottie-react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Dimensions, Image, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Button,
+  Dimensions,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import DropdownAlert from "react-native-dropdownalert";
 import FlashMessage, { showMessage } from "react-native-flash-message";
 import FotoProfile from "../../assets/picturePng/FotoProfile.png";
@@ -14,6 +22,7 @@ import HeaderUser from "../../components/Header";
 import { API_URL, postUser } from "../../services/apiService";
 import HomeTabAir from "../../tabs/tabHome/HomeAirTab";
 import { APPLICATION_ID } from "../../Util/Constants";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 
@@ -98,14 +107,19 @@ const PlaceholderScreenHome = () => {
 
   if (!userProfile) {
     return (
-      <LinearGradient colors={["#054599", "#0973FF"]} style={[styles.container, { justifyContent: "center" }]}>
+      <LinearGradient
+        colors={["#054599", "#0973FF"]}
+        style={[styles.container, { justifyContent: "center" }]}
+      >
         <LottieView
           source={require("../../assets/lottieAnimation/CuteBoyRunning_Loading.json")}
           autoPlay
           loop
           style={{ width: 150, height: 150 }}
         />
-        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>{t("loading")}</Text>
+        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>
+          {t("loading")}
+        </Text>
       </LinearGradient>
     );
   } else {
@@ -113,7 +127,11 @@ const PlaceholderScreenHome = () => {
       <>
         <View style={{ flex: 1 }}>
           <FlashMessage position="top" />
-          <LinearGradient colors={["#0973FF", "#054599"]} style={styles.container} locations={[0, 0.5]}>
+          <LinearGradient
+            colors={["#0973FF", "#054599"]}
+            style={styles.container}
+            locations={[0, 0.5]}
+          >
             {/* <HeaderUser
           photoSource={
             user?.foto
@@ -126,62 +144,81 @@ const PlaceholderScreenHome = () => {
             console.log("Logout ditekan");
           }}
         /> */}
-            <HeaderUser
-              photoSource={{
-                uri:
-                  userProfile.usc_foto !== null
-                    ? //user?.foto
-                      `${API_URL}Uploads/${userProfile.usc_foto}`
-                    : `${API_URL}Uploads/fotonotfound.jpg`,
-              }}
-              name={user?.nama || "Guest"}
-              role={user?.role || "No Role"}
-              onLogout={async () => {
-                try {
-                  await AsyncStorage.removeItem("activeUser");
-                  navigation.navigate("LoginScreen");
-                } catch (error) {
-                  console.error("Gagal logout:", error);
-                }
-              }}
-            />
-            {/* IMAGE SVG TRIO HOME ASTRA */}
-            <View style={{ width: "100%", alignItems: "center" }}>
-              <Image
-                source={TrioHomeAstraPng}
-                style={{
-                  width: 220,
-                  height: 100,
-                  marginBottom: -5,
-                  marginTop: 0,
+            <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+              <HeaderUser
+                photoSource={{
+                  uri:
+                    userProfile.usc_foto !== null
+                      ? //user?.foto
+                        `${API_URL}Uploads/${userProfile.usc_foto}`
+                      : `${API_URL}Uploads/fotonotfound.jpg`,
+                }}
+                name={user?.nama || "Guest"}
+                role={user?.role || "No Role"}
+                onLogout={async () => {
+                  try {
+                    await AsyncStorage.removeItem("activeUser");
+                    navigation.navigate("LoginScreen");
+                  } catch (error) {
+                    console.error("Gagal logout:", error);
+                  }
                 }}
               />
-            </View>
-            {/* KOTAK PUTIH DI TENGAH */}
-            <View style={styles.cardBlue}>
-              <View style={styles.circleRow}>
-                <View style={styles.circleTopRight} />
-                <View style={styles.circleTopLeft} />
+              {/* IMAGE SVG TRIO HOME ASTRA */}
+              <View style={{ width: "100%", alignItems: "center" }}>
+                <Image
+                  source={TrioHomeAstraPng}
+                  style={{
+                    width: 220,
+                    height: 100,
+                    marginBottom: -5,
+                    marginTop: 0,
+                  }}
+                />
               </View>
-              <View style={styles.buttonRow}>
-                <Pressable
-                  style={[styles.toggleButtonAir, activeTab === "Air" ? styles.activeButton : styles.inactiveButton]}
-                  onPress={() => setActiveTab("Air")}>
-                  <Entypo name="water" size={24} color={activeTab === "Air" ? "#0973FF" : "white"} />
-                </Pressable>
+              {/* KOTAK PUTIH DI TENGAH */}
+              <View style={styles.cardBlue}>
+                <View style={styles.circleRow}>
+                  <View style={styles.circleTopRight} />
+                  <View style={styles.circleTopLeft} />
+                </View>
+                <View style={styles.buttonRow}>
+                  <Pressable
+                    style={[
+                      styles.toggleButtonAir,
+                      activeTab === "Air"
+                        ? styles.activeButton
+                        : styles.inactiveButton,
+                    ]}
+                    onPress={() => setActiveTab("Air")}
+                  >
+                    <Entypo
+                      name="water"
+                      size={24}
+                      color={activeTab === "Air" ? "#0973FF" : "white"}
+                    />
+                  </Pressable>
 
-                <Pressable
-                  style={[
-                    styles.toggleButtonListrik,
-                    activeTab === "Listrik" ? styles.activeButton : styles.inactiveButton,
-                  ]}
-                  onPress={() => setActiveTab("Listrik")}>
-                  <MaterialIcons name="electric-bolt" size={24} color={activeTab === "Listrik" ? "#0973FF" : "white"} />
-                </Pressable>
+                  <Pressable
+                    style={[
+                      styles.toggleButtonListrik,
+                      activeTab === "Listrik"
+                        ? styles.activeButton
+                        : styles.inactiveButton,
+                    ]}
+                    onPress={() => setActiveTab("Listrik")}
+                  >
+                    <MaterialIcons
+                      name="electric-bolt"
+                      size={24}
+                      color={activeTab === "Listrik" ? "#0973FF" : "white"}
+                    />
+                  </Pressable>
+                </View>
+
+                <View style={styles.cardWhite}>{renderContent()}</View>
               </View>
-
-              <View style={styles.cardWhite}>{renderContent()}</View>
-            </View>
+            </SafeAreaView>
           </LinearGradient>
         </View>
       </>
@@ -227,8 +264,8 @@ const stylesAvatar = StyleSheet.create({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: height * 0.05,
-    alignItems: "center",
+    // paddingTop: height * 0.05,
+    // alignItems: "center",
   },
   header: {
     width: "90%",

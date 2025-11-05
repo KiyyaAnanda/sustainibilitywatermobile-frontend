@@ -1,4 +1,10 @@
-import { Entypo, FontAwesome, FontAwesome6, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import {
+  Entypo,
+  FontAwesome,
+  FontAwesome6,
+  Ionicons,
+  MaterialIcons,
+} from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -96,23 +102,53 @@ const PlaceHolderScreenAir = () => {
   const tabs = [
     {
       name: t("master_sensor_location"),
-      icon: (isActive) => <FontAwesome6 name="map-location-dot" size={24} color={isActive ? "#0455cc" : "white"} />,
+      icon: (isActive) => (
+        <FontAwesome6
+          name="map-location-dot"
+          size={24}
+          color={isActive ? "#0455cc" : "white"}
+        />
+      ),
     },
     {
       name: t("sensor_water"),
-      icon: (isActive) => <Ionicons name="water" size={24} color={isActive ? "#0455cc" : "white"} />,
+      icon: (isActive) => (
+        <Ionicons
+          name="water"
+          size={24}
+          color={isActive ? "#0455cc" : "white"}
+        />
+      ),
     },
     {
       name: t("target_evaluation"),
-      icon: (isActive) => <FontAwesome name="fire" size={24} color={isActive ? "#0455cc" : "white"} />,
+      icon: (isActive) => (
+        <FontAwesome
+          name="fire"
+          size={24}
+          color={isActive ? "#0455cc" : "white"}
+        />
+      ),
     },
     {
       name: t("water_usage"),
-      icon: (isActive) => <FontAwesome name="bar-chart" size={24} color={isActive ? "#0455cc" : "white"} />,
+      icon: (isActive) => (
+        <FontAwesome
+          name="bar-chart"
+          size={24}
+          color={isActive ? "#0455cc" : "white"}
+        />
+      ),
     },
     {
       name: t("preventive_maintenance"),
-      icon: (isActive) => <FontAwesome name="wrench" size={24} color={isActive ? "#0455cc" : "white"} />,
+      icon: (isActive) => (
+        <FontAwesome
+          name="wrench"
+          size={24}
+          color={isActive ? "#0455cc" : "white"}
+        />
+      ),
     },
   ];
 
@@ -266,23 +302,32 @@ const PlaceHolderScreenAir = () => {
 
   if (!userProfile) {
     return (
-      <LinearGradient colors={["#0973FF", "#054599"]} style={[stylesLoading.container, { justifyContent: "center" }]}>
+      <LinearGradient
+        colors={["#0973FF", "#054599"]}
+        style={[stylesLoading.container, { justifyContent: "center" }]}
+      >
         <LottieView
           source={require("../../assets/lottieAnimation/CuteBoyRunning_Loading.json")}
           autoPlay
           loop
           style={{ width: 150, height: 150 }}
         />
-        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>{t("loading")}</Text>
+        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>
+          {t("loading")}
+        </Text>
       </LinearGradient>
     );
   } else {
     return (
       <LinearGradient colors={["#0973FF", "#054599"]} style={styles.gradient}>
-        <View style={styles.container}>
-          {/* Header Section */}
-          <LinearGradient colors={["#0973FF", "#054599"]} style={styles.header}>
-            {/* <HeaderUser
+        <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+          <View style={styles.container}>
+            {/* Header Section */}
+            <LinearGradient
+              colors={["#0973FF", "#054599"]}
+              style={styles.header}
+            >
+              {/* <HeaderUser
             photoSource={
               user?.foto
                 ? { uri: `${API_URL}/UploadProfile/${user.foto}` }
@@ -294,154 +339,177 @@ const PlaceHolderScreenAir = () => {
               console.log("Logout ditekan");
             }}
           /> */}
-            <HeaderUser
-              photoSource={{
-                uri:
-                  userProfile.usc_foto !== null
-                    ? //user?.foto
-                      `${API_URL}Uploads/${userProfile.usc_foto}`
-                    : `${API_URL}Uploads/fotonotfound.jpg`,
-              }}
-              name={user?.nama || "Guest"}
-              role={user?.role || "No Role"}
-              onLogout={async () => {
-                try {
-                  await AsyncStorage.removeItem("activeUser");
-                  navigation.navigate("LoginScreen");
-                } catch (error) {
-                  console.error("Gagal logout:", error);
-                }
-              }}
-              customStyles={{
-                header: stylesAvatar.header,
-                username: stylesAvatar.username,
-                position: stylesAvatar.position,
-                avatar: stylesAvatar.avatar,
-                logoutIconColor: "white", // ini bukan style object
-              }}
-            />
+              <HeaderUser
+                photoSource={{
+                  uri:
+                    userProfile.usc_foto !== null
+                      ? //user?.foto
+                        `${API_URL}Uploads/${userProfile.usc_foto}`
+                      : `${API_URL}Uploads/fotonotfound.jpg`,
+                }}
+                name={user?.nama || "Guest"}
+                role={user?.role || "No Role"}
+                onLogout={async () => {
+                  try {
+                    await AsyncStorage.removeItem("activeUser");
+                    navigation.navigate("LoginScreen");
+                  } catch (error) {
+                    console.error("Gagal logout:", error);
+                  }
+                }}
+                customStyles={{
+                  header: stylesAvatar.header,
+                  username: stylesAvatar.username,
+                  position: stylesAvatar.position,
+                  avatar: stylesAvatar.avatar,
+                  logoutIconColor: "white", // ini bukan style object
+                }}
+              />
 
-            {/* Search Bar */}
-            {/* <TextInput
+              {/* Search Bar */}
+              {/* <TextInput
             style={styles.searchBar}
             placeholder="Cari layanan atau informasi..."
             placeholderTextColor="#999"
             /> */}
-            <View style={styles.searchBarWrapper}>
-              <TextInput
-                style={styles.searchBarInput}
-                placeholder="Cari layanan atau informasi..."
-                placeholderTextColor="#999"
-                value={searchParams.query}
-                onChangeText={(text) => setSearchParams((prev) => ({ ...prev, query: text, page: 1 }))}
-              />
-              <View style={styles.filterWrapper}>
-                <Filter>
-                  {/* dropdown seperti sebelumnya */}
-                  <DropDown
-                    label="Pilih Filter"
-                    // type="pilih"
-                    arrData={getFilterSortData()}
-                    selectedValue={searchFilterSort}
-                    onValueChange={(val) => {
-                      setSearchFilterSort(val);
-                      setSearchParams((prev) => ({
-                        ...prev,
-                        page: 1,
-                        sort: val,
-                      }));
-                    }}
-                    pickerWrapper={{
-                      borderWidth: 0,
-                      borderColor: "#ccc",
-                      borderRadius: 10,
-                      overflow: "hidden",
-                      height: 80, // atur tinggi dropdown
-                      width: "100%", // bisa diganti ke ukuran tetap, contoh: 200
-                      justifyContent: "center",
-                    }}
-                  />
-                  {activeTab === 0 && (
+              <View style={styles.searchBarWrapper}>
+                <TextInput
+                  style={styles.searchBarInput}
+                  placeholder="Cari layanan atau informasi..."
+                  placeholderTextColor="#999"
+                  value={searchParams.query}
+                  onChangeText={(text) =>
+                    setSearchParams((prev) => ({
+                      ...prev,
+                      query: text,
+                      page: 1,
+                    }))
+                  }
+                />
+                <View style={styles.filterWrapper}>
+                  <Filter>
+                    {/* dropdown seperti sebelumnya */}
                     <DropDown
-                      label="Status"
-                      type="pilih"
-                      arrData={dataLokasiFilterStatus}
-                      selectedValue={searchParams.status}
+                      label="Pilih Filter"
+                      // type="pilih"
+                      arrData={getFilterSortData()}
+                      selectedValue={searchFilterSort}
                       onValueChange={(val) => {
+                        setSearchFilterSort(val);
                         setSearchParams((prev) => ({
                           ...prev,
                           page: 1,
-                          status: val,
+                          sort: val,
                         }));
                       }}
                       pickerWrapper={{
                         borderWidth: 0,
                         borderColor: "#ccc",
-                        borderRadius: 4,
+                        borderRadius: 10,
                         overflow: "hidden",
                         height: 80, // atur tinggi dropdown
                         width: "100%", // bisa diganti ke ukuran tetap, contoh: 200
                         justifyContent: "center",
                       }}
                     />
-                  )}
-                  {activeTab === 4 && (
-                    <DropDown
-                      label="Status"
-                      type="pilih"
-                      arrData={dataTRKontrolKomponenAirStatus}
-                      selectedValue={searchParams.status}
-                      onValueChange={(val) => {
-                        setSearchParams((prev) => ({
-                          ...prev,
-                          page: 1,
-                          status: val,
-                        }));
-                      }}
-                      pickerWrapper={{
-                        borderWidth: 0,
-                        borderColor: "#ccc",
-                        borderRadius: 4,
-                        overflow: "hidden",
-                        height: 80, // atur tinggi dropdown
-                        width: "100%", // bisa diganti ke ukuran tetap, contoh: 200
-                        justifyContent: "center",
-                      }}
-                    />
-                  )}
-                </Filter>
+                    {activeTab === 0 && (
+                      <DropDown
+                        label="Status"
+                        type="pilih"
+                        arrData={dataLokasiFilterStatus}
+                        selectedValue={searchParams.status}
+                        onValueChange={(val) => {
+                          setSearchParams((prev) => ({
+                            ...prev,
+                            page: 1,
+                            status: val,
+                          }));
+                        }}
+                        pickerWrapper={{
+                          borderWidth: 0,
+                          borderColor: "#ccc",
+                          borderRadius: 4,
+                          overflow: "hidden",
+                          height: 80, // atur tinggi dropdown
+                          width: "100%", // bisa diganti ke ukuran tetap, contoh: 200
+                          justifyContent: "center",
+                        }}
+                      />
+                    )}
+                    {activeTab === 4 && (
+                      <DropDown
+                        label="Status"
+                        type="pilih"
+                        arrData={dataTRKontrolKomponenAirStatus}
+                        selectedValue={searchParams.status}
+                        onValueChange={(val) => {
+                          setSearchParams((prev) => ({
+                            ...prev,
+                            page: 1,
+                            status: val,
+                          }));
+                        }}
+                        pickerWrapper={{
+                          borderWidth: 0,
+                          borderColor: "#ccc",
+                          borderRadius: 4,
+                          overflow: "hidden",
+                          height: 80, // atur tinggi dropdown
+                          width: "100%", // bisa diganti ke ukuran tetap, contoh: 200
+                          justifyContent: "center",
+                        }}
+                      />
+                    )}
+                  </Filter>
+                </View>
               </View>
-            </View>
 
-            {/* Feature Cards */}
-            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} pagingEnabled={true}>
-              <View style={styles.featureCards}>
-                {tabs.map((tab, index) => {
-                  const isActive = activeTab === index;
-                  return (
-                    <TouchableOpacity
-                      key={index}
-                      style={[styles.featureCard, isActive && styles.featureCardActive]}
-                      onPress={() => setActiveTab(index)}>
-                      {tab.icon(isActive)}
-                      <Text style={[styles.featureText, isActive && styles.featureTextActive]}>{tab.name}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+              {/* Feature Cards */}
+              <ScrollView
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+                pagingEnabled={true}
+              >
+                <View style={styles.featureCards}>
+                  {tabs.map((tab, index) => {
+                    const isActive = activeTab === index;
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={[
+                          styles.featureCard,
+                          isActive && styles.featureCardActive,
+                        ]}
+                        onPress={() => setActiveTab(index)}
+                      >
+                        {tab.icon(isActive)}
+                        <Text
+                          style={[
+                            styles.featureText,
+                            isActive && styles.featureTextActive,
+                          ]}
+                        >
+                          {tab.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+            </LinearGradient>
+
+            {/* Main Content */}
+            <ScrollView
+              style={styles.mainContent}
+              contentContainerStyle={{ paddingBottom: 25 }}
+              showsVerticalScrollIndicator={false}
+            >
+              {renderActiveTabContent()}
             </ScrollView>
-          </LinearGradient>
 
-          {/* Main Content */}
-          <ScrollView
-            style={styles.mainContent}
-            contentContainerStyle={{ paddingBottom: 25 }}
-            showsVerticalScrollIndicator={false}>
-            {renderActiveTabContent()}
-          </ScrollView>
-
-          {/* Bottom Navigation */}
-        </View>
+            {/* Bottom Navigation */}
+          </View>
+        </SafeAreaView>
       </LinearGradient>
     );
   }
@@ -497,7 +565,9 @@ const stylesLoading = StyleSheet.create({
 const styles = StyleSheet.create({
   gradient: {
     flex: 1,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+    // paddingTop: height * 0.05,
+    // alignItems: "center"
+    // paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   container: {
     flex: 1,
