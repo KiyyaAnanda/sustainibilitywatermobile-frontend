@@ -762,7 +762,7 @@ export default function HomeTabAir() {
         <View style={styles.dropdownContainer}>
           <Text style={styles.label}>Pilih Tampilan Chart:</Text>
           <View style={styles.buttonRow}>
-            {["yearly", "monthly", "weekly"].map((type) => (
+            {["yearly", "monthly", "weekly", "daily"].map((type) => (
               <Text
                 key={type}
                 style={[styles.filterButton, filterType === type && styles.activeButton]}
