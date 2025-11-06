@@ -1,10 +1,4 @@
-import {
-  Entypo,
-  FontAwesome,
-  FontAwesome6,
-  Ionicons,
-  MaterialIcons,
-} from "@expo/vector-icons";
+import { Entypo, FontAwesome, FontAwesome6, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -13,6 +7,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Dimensions,
+  FlatList,
   Image,
   Platform,
   Pressable,
@@ -102,53 +97,23 @@ const PlaceHolderScreenAir = () => {
   const tabs = [
     {
       name: t("master_sensor_location"),
-      icon: (isActive) => (
-        <FontAwesome6
-          name="map-location-dot"
-          size={24}
-          color={isActive ? "#0455cc" : "white"}
-        />
-      ),
+      icon: (isActive) => <FontAwesome6 name="map-location-dot" size={24} color={isActive ? "#0455cc" : "white"} />,
     },
     {
       name: t("sensor_water"),
-      icon: (isActive) => (
-        <Ionicons
-          name="water"
-          size={24}
-          color={isActive ? "#0455cc" : "white"}
-        />
-      ),
+      icon: (isActive) => <Ionicons name="water" size={24} color={isActive ? "#0455cc" : "white"} />,
     },
     {
       name: t("target_evaluation"),
-      icon: (isActive) => (
-        <FontAwesome
-          name="fire"
-          size={24}
-          color={isActive ? "#0455cc" : "white"}
-        />
-      ),
+      icon: (isActive) => <FontAwesome name="fire" size={24} color={isActive ? "#0455cc" : "white"} />,
     },
     {
       name: t("water_usage"),
-      icon: (isActive) => (
-        <FontAwesome
-          name="bar-chart"
-          size={24}
-          color={isActive ? "#0455cc" : "white"}
-        />
-      ),
+      icon: (isActive) => <FontAwesome name="bar-chart" size={24} color={isActive ? "#0455cc" : "white"} />,
     },
     {
       name: t("preventive_maintenance"),
-      icon: (isActive) => (
-        <FontAwesome
-          name="wrench"
-          size={24}
-          color={isActive ? "#0455cc" : "white"}
-        />
-      ),
+      icon: (isActive) => <FontAwesome name="wrench" size={24} color={isActive ? "#0455cc" : "white"} />,
     },
   ];
 
@@ -302,19 +267,14 @@ const PlaceHolderScreenAir = () => {
 
   if (!userProfile) {
     return (
-      <LinearGradient
-        colors={["#0973FF", "#054599"]}
-        style={[stylesLoading.container, { justifyContent: "center" }]}
-      >
+      <LinearGradient colors={["#0973FF", "#054599"]} style={[stylesLoading.container, { justifyContent: "center" }]}>
         <LottieView
           source={require("../../assets/lottieAnimation/CuteBoyRunning_Loading.json")}
           autoPlay
           loop
           style={{ width: 150, height: 150 }}
         />
-        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>
-          {t("loading")}
-        </Text>
+        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>{t("loading")}</Text>
       </LinearGradient>
     );
   } else {
@@ -323,10 +283,7 @@ const PlaceHolderScreenAir = () => {
         <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
           <View style={styles.container}>
             {/* Header Section */}
-            <LinearGradient
-              colors={["#0973FF", "#054599"]}
-              style={styles.header}
-            >
+            <LinearGradient colors={["#0973FF", "#054599"]} style={styles.header}>
               {/* <HeaderUser
             photoSource={
               user?.foto
@@ -465,7 +422,7 @@ const PlaceHolderScreenAir = () => {
               </View>
 
               {/* Feature Cards */}
-              <ScrollView
+              {/* <ScrollView
                 horizontal={true}
                 showsHorizontalScrollIndicator={false}
                 pagingEnabled={true}
@@ -495,15 +452,33 @@ const PlaceHolderScreenAir = () => {
                     );
                   })}
                 </View>
-              </ScrollView>
+              </ScrollView> */}
+
+              <FlatList
+                data={tabs}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(_, idx) => idx.toString()}
+                contentContainerStyle={styles.featureCards}
+                renderItem={({ item, index }) => {
+                  const isActive = activeTab === index;
+                  return (
+                    <TouchableOpacity
+                      style={[styles.featureCard, isActive && styles.featureCardActive]}
+                      onPress={() => setActiveTab(index)}>
+                      {item.icon(isActive)}
+                      <Text style={[styles.featureText, isActive && styles.featureTextActive]}>{item.name}</Text>
+                    </TouchableOpacity>
+                  );
+                }}
+              />
             </LinearGradient>
 
             {/* Main Content */}
             <ScrollView
               style={styles.mainContent}
               contentContainerStyle={{ paddingBottom: 25 }}
-              showsVerticalScrollIndicator={false}
-            >
+              showsVerticalScrollIndicator={false}>
               {renderActiveTabContent()}
             </ScrollView>
 

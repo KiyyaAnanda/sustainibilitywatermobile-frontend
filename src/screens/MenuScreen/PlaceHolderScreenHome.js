@@ -5,24 +5,16 @@ import { LinearGradient } from "expo-linear-gradient";
 import LottieView from "lottie-react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Button,
-  Dimensions,
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Button, Dimensions, Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import DropdownAlert from "react-native-dropdownalert";
 import FlashMessage, { showMessage } from "react-native-flash-message";
+import { SafeAreaView } from "react-native-safe-area-context";
 import FotoProfile from "../../assets/picturePng/FotoProfile.png";
 import TrioHomeAstraPng from "../../assets/picturePng/TrioAstraHome.png";
 import HeaderUser from "../../components/Header";
 import { API_URL, postUser } from "../../services/apiService";
 import HomeTabAir from "../../tabs/tabHome/HomeAirTab";
 import { APPLICATION_ID } from "../../Util/Constants";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 
@@ -107,19 +99,14 @@ const PlaceholderScreenHome = () => {
 
   if (!userProfile) {
     return (
-      <LinearGradient
-        colors={["#054599", "#0973FF"]}
-        style={[styles.container, { justifyContent: "center" }]}
-      >
+      <LinearGradient colors={["#054599", "#0973FF"]} style={[styles.container, { justifyContent: "center" }]}>
         <LottieView
           source={require("../../assets/lottieAnimation/CuteBoyRunning_Loading.json")}
           autoPlay
           loop
           style={{ width: 150, height: 150 }}
         />
-        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>
-          {t("loading")}
-        </Text>
+        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>{t("loading")}</Text>
       </LinearGradient>
     );
   } else {
@@ -127,11 +114,7 @@ const PlaceholderScreenHome = () => {
       <>
         <View style={{ flex: 1 }}>
           <FlashMessage position="top" />
-          <LinearGradient
-            colors={["#0973FF", "#054599"]}
-            style={styles.container}
-            locations={[0, 0.5]}
-          >
+          <LinearGradient colors={["#0973FF", "#054599"]} style={styles.container} locations={[0, 0.5]}>
             {/* <HeaderUser
           photoSource={
             user?.foto
@@ -145,25 +128,26 @@ const PlaceholderScreenHome = () => {
           }}
         /> */}
             <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
-              <HeaderUser
-                photoSource={{
-                  uri:
-                    userProfile.usc_foto !== null
-                      ? //user?.foto
-                        `${API_URL}Uploads/${userProfile.usc_foto}`
-                      : `${API_URL}Uploads/fotonotfound.jpg`,
-                }}
-                name={user?.nama || "Guest"}
-                role={user?.role || "No Role"}
-                onLogout={async () => {
-                  try {
-                    await AsyncStorage.removeItem("activeUser");
-                    navigation.navigate("LoginScreen");
-                  } catch (error) {
-                    console.error("Gagal logout:", error);
-                  }
-                }}
-              />
+              <View style={styles.headerWrapper}>
+                <HeaderUser
+                  photoSource={{
+                    uri:
+                      userProfile.usc_foto !== null
+                        ? `${API_URL}Uploads/${userProfile.usc_foto}`
+                        : `${API_URL}Uploads/fotonotfound.jpg`,
+                  }}
+                  name={user?.nama || "Guest"}
+                  role={user?.role || "No Role"}
+                  onLogout={async () => {
+                    try {
+                      await AsyncStorage.removeItem("activeUser");
+                      navigation.navigate("LoginScreen");
+                    } catch (error) {
+                      console.error("Gagal logout:", error);
+                    }
+                  }}
+                />
+              </View>
               {/* IMAGE SVG TRIO HOME ASTRA */}
               <View style={{ width: "100%", alignItems: "center" }}>
                 <Image
@@ -184,30 +168,17 @@ const PlaceholderScreenHome = () => {
                 </View>
                 <View style={styles.buttonRow}>
                   <Pressable
-                    style={[
-                      styles.toggleButtonAir,
-                      activeTab === "Air"
-                        ? styles.activeButton
-                        : styles.inactiveButton,
-                    ]}
-                    onPress={() => setActiveTab("Air")}
-                  >
-                    <Entypo
-                      name="water"
-                      size={24}
-                      color={activeTab === "Air" ? "#0973FF" : "white"}
-                    />
+                    style={[styles.toggleButtonAir, activeTab === "Air" ? styles.activeButton : styles.inactiveButton]}
+                    onPress={() => setActiveTab("Air")}>
+                    <Entypo name="water" size={24} color={activeTab === "Air" ? "#0973FF" : "white"} />
                   </Pressable>
 
                   <Pressable
                     style={[
                       styles.toggleButtonListrik,
-                      activeTab === "Listrik"
-                        ? styles.activeButton
-                        : styles.inactiveButton,
+                      activeTab === "Listrik" ? styles.activeButton : styles.inactiveButton,
                     ]}
-                    onPress={() => setActiveTab("Listrik")}
-                  >
+                    onPress={() => setActiveTab("Listrik")}>
                     <MaterialIcons
                       name="electric-bolt"
                       size={24}
@@ -226,46 +197,51 @@ const PlaceholderScreenHome = () => {
   }
 };
 
-const stylesAvatar = StyleSheet.create({
-  header: {
-    width: "90%",
-    marginBottom: 20,
-    flexDirection: "row", // horizontal layout
-    justifyContent: "space-between",
-    alignItems: "center", // vertical center
-  },
+// ga dipake
+// const stylesAvatar = StyleSheet.create({
+//   header: {
+//     width: "90%",
+//     marginBottom: 20,
+//     flexDirection: "row", // horizontal layout
+//     justifyContent: "space-between",
+//     alignItems: "center", // vertical center
+//   },
 
-  avatarContainer: {
-    flexDirection: "row",
-    alignItems: "top",
-  },
+//   avatarContainer: {
+//     flexDirection: "row",
+//     alignItems: "top",
+//   },
 
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#ccc",
-    marginRight: 10,
-  },
+//   avatar: {
+//     width: 36,
+//     height: 36,
+//     borderRadius: 18,
+//     backgroundColor: "#ccc",
+//     marginRight: 10,
+//   },
 
-  username: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
+//   username: {
+//     color: "white",
+//     fontSize: 16,
+//     fontWeight: "bold",
+//   },
 
-  position: {
-    color: "white",
-    fontSize: 12, // lebih kecil dari username
-    marginTop: 2,
-  },
-});
+//   position: {
+//     color: "white",
+//     fontSize: 12, // lebih kecil dari username
+//     marginTop: 2,
+//   },
+// });
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // paddingTop: height * 0.05,
-    // alignItems: "center",
+  },
+  headerWrapper: {
+    width: "100%",
+    // paddingHorizontal: 16,
+    paddingTop: Platform.OS === "android" ? 8 : 0,
+    alignItems: "center", // Align header to the left
   },
   header: {
     width: "90%",
