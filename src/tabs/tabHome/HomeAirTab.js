@@ -5,9 +5,12 @@
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Dimensions, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Dimensions, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import { postUser, postUserArray } from "../../services/apiService";
+//import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GEMINI_API_KEY } from "@env"
 
 // const months = [
 //   "JANUARI",
@@ -334,6 +337,7 @@ const CARD_WIDTH = SCREEN_WIDTH * 0.7;
 const CARD_MARGIN = 10;
 const SNAP_INTERVAL = CARD_WIDTH + CARD_MARGIN * 2;
 const TOTAL_DUPLICATE = 10; // ulangi 10 kali untuk efek loop
+const HARGA_PER_M3 = 6500; // Dummy harga per m³
 
 const CardPerMonth = ({
   month,
@@ -395,6 +399,13 @@ export default function HomeTabAir() {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   //SETTING TOTAL YTD
+
+  // Inisialisasi Google Generative AI
+//  const genAI = new GoogleGenAI(GEMINI_API_KEY);
+  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+
+  const [aiRecommendation, setAiRecommendation] = useState("");
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -728,15 +739,72 @@ export default function HomeTabAir() {
     }, [filterType])
   );
 
+  const getAiRecommendation = async () => {
+    setIsAiLoading(true);
+    setAiRecommendation("");
+  
+    // 1. Format data tabel Top Komponen
+    const dataLaporanTop = topKomponenData
+      .map(
+        (item, index) =>
+          `${index + 1}. Komponen: ${item.NoKomponen}, Lokasi: ${
+            item.Lokasi
+          }, Total Volume: ${item.TotalVolumeAir} m³, Tanggal: ${new Date(item.Tanggal).toLocaleDateString("id-ID")}`
+      )
+      .join("\n");
+  
+    // 2. Format data bulanan
+    // Kita gunakan 'monthlyConsumptionData' yang sudah ada di state
+    const dataLaporanBulanan = monthlyConsumptionData
+      .map((total, index) => {
+        if (total === 0) return null; // Jangan laporkan bulan dengan data 0
+        const bulanLalu = index > 0 ? monthlyConsumptionData[index - 1] : 0;
+        const selisih = total - bulanLalu;
+        return `${months[index]}: ${total.toFixed(2)} m³ (Perubahan: ${selisih.toFixed(2)} m³ dari bulan lalu)`;
+      })
+      .filter(Boolean) // Hapus entri null
+      .join("\n");
+  
+    // 3. Buat Prompt
+    const prompt = `
+      Anda adalah asisten ahli analisis data konsumsi air.
+      Berdasarkan data berikut, berikan rekomendasi untuk mengurangi konsumsi air dan mengatasi potensi kerugian.
+  
+      Data Laporan Konsumsi Bulanan (Total):
+      ${dataLaporanBulanan}
+  
+      Data Top Konsumen (berdasarkan filter: ${filterVolume}):
+      ${dataLaporanTop}
+  
+      Tolong berikan analisis singkat dan 3-5 langkah rekomendasi yang praktis dan actionable berdasarkan data di atas.
+      Fokus pada area dengan konsumsi tertinggi atau peningkatan drastis.
+    `;
+  
+    try {
+      // Panggil model
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" }); // atau "gemini-2.5-flash"
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+  
+      setAiRecommendation(text);
+    } catch (error) {
+      console.error("Error fetching AI recommendation:", error);
+      setAiRecommendation("Gagal mendapatkan rekomendasi. Silakan coba lagi.");
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
       <View style={styles.container}>
         <Text style={styles.header2}>{t("progress_title")}</Text>
         {/* {isLoading ? (
-          <Text>Loading...</Text>
-        ) : isError ? (
-          <Text>Error fetching data</Text>
-        ) : ( */}
+            <Text>Loading...</Text>
+          ) : isError ? (
+            <Text>Error fetching data</Text>
+          ) : ( */}
         <FlatList
           ref={flatListRef}
           horizontal
@@ -775,10 +843,10 @@ export default function HomeTabAir() {
         {/* {isLoading ? ( */}
         {/* <ActivityIndicator size="large" color="#007bff" /> */}
         {/* ) : isError ? (
-            <Text style={{ color: "red", marginTop: 10 }}>
-              Gagal memuat data. Silakan coba lagi.
-            </Text>
-          ) : ( */}
+              <Text style={{ color: "red", marginTop: 10 }}>
+                Gagal memuat data. Silakan coba lagi.
+              </Text>
+            ) : ( */}
         <View style={{ flexDirection: "row" }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View>
@@ -799,7 +867,7 @@ export default function HomeTabAir() {
                 }}
                 style={styles.chart}
               />
-
+  
               {tooltipPos.visible && (
                 <View
                   style={{
@@ -818,11 +886,11 @@ export default function HomeTabAir() {
         </View>
         {/* )} */}
       </View>
-
+  
       <View style={styles.container}>
         <Text style={styles.header2}>{t("top_Sensor_title")}</Text>
         <Text style={styles.label2}>{t("sort_by")}</Text>
-
+  
         <View style={styles.segmentedContainer}>
           {["volume", "lokasi", "tanggal"].map((item) => (
             <TouchableOpacity
@@ -836,7 +904,7 @@ export default function HomeTabAir() {
           ))}
         </View>
       </View>
-
+  
       <>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View>
@@ -847,35 +915,281 @@ export default function HomeTabAir() {
               <Text style={[stylesTable.cellHeader, { width: 150 }]}>Lokasi</Text>
               <Text style={[stylesTable.cellHeader, { width: 160 }]}>Total Volume Air</Text>
               <Text style={[stylesTable.cellHeader, { width: 200 }]}>Tanggal</Text>
+              <Text style={[stylesTable.cellHeader, { width: 150 }]}>Perkiraan Biaya</Text>
             </View>
-
+  
             {/* Body */}
-            {topKomponenData.map((item, index) => (
-              <View key={index} style={stylesTable.tableRow}>
-                <Text style={[stylesTable.cell, { width: 50 }]}>{index + 1}</Text>
-                <Text style={[stylesTable.cell, { width: 120 }]} numberOfLines={1} ellipsizeMode="tail">
-                  {item.NoKomponen}
-                </Text>
-                <Text style={[stylesTable.cell, { width: 150 }]} numberOfLines={1} ellipsizeMode="tail">
-                  {item.Lokasi || "-"}
-                </Text>
-                <Text style={[stylesTable.cell, { width: 160 }]}>{parseFloat(item.TotalVolumeAir).toFixed(2)}</Text>
-                <Text style={[stylesTable.cell, { width: 200 }]} numberOfLines={1} ellipsizeMode="tail">
-                  {new Date(item.Tanggal).toLocaleString("id-ID", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </Text>
-              </View>
-            ))}
+            {/* INI ADALAH BLOK YANG SUDAH DIPERBAIKI DARI LANGKAH 1 */}
+            {topKomponenData.map((item, index) => {
+              const perkiraanBiaya = parseFloat(item.TotalVolumeAir) * HARGA_PER_M3;
+  
+              return (
+                <View key={index} style={stylesTable.tableRow}>
+                  <Text style={[stylesTable.cell, { width: 50 }]}>{index + 1}</Text>
+                  <Text style={[stylesTable.cell, { width: 120 }]} numberOfLines={1} ellipsizeMode="tail">
+                    {item.NoKomponen}
+                  </Text>
+                  <Text style={[stylesTable.cell, { width: 150 }]} numberOfLines={1} ellipsizeMode="tail">
+                    {item.Lokasi || "-"}
+                  </Text>
+                  <Text style={[stylesTable.cell, { width: 160 }]}>{parseFloat(item.TotalVolumeAir).toFixed(2)}</Text>
+                  <Text style={[stylesTable.cell, { width: 200 }]} numberOfLines={1} ellipsizeMode="tail">
+                    {new Date(item.Tanggal).toLocaleString("id-ID", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </Text>
+                  <Text style={[stylesTable.cell, { width: 150 }]} numberOfLines={1}>
+                    {`Rp ${perkiraanBiaya.toLocaleString("id-ID")}`}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         </ScrollView>
       </>
+  
+      {/* --- INI ADALAH BLOK TABEL BULANAN BARU ANDA --- */}
+      <View style={styles.container}>
+        <Text style={styles.header2}>{t("Laporan Konsumsi & Biaya Bulanan")}</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View>
+            {/* Header Tabel Bulanan */}
+            <View style={stylesTable.tableRowHeader}>
+              <Text style={[stylesTable.cellHeader, { width: 100 }]}>Bulan</Text>
+              <Text style={[stylesTable.cellHeader, { width: 150 }]}>Total Konsumsi (m³)</Text>
+              <Text style={[stylesTable.cellHeader, { width: 170 }]}>Perkiraan Biaya</Text>
+              <Text style={[stylesTable.cellHeader, { width: 170 }]}>Perbandingan Volume</Text>
+              <Text style={[stylesTable.cellHeader, { width: 170 }]}>Perbandingan Biaya</Text>
+            </View>
+  
+            {/* Body Tabel Bulanan */}
+            {monthlyConsumptionData.map((totalKonsumsi, index) => {
+              // Hanya tampilkan jika ada data
+              if (totalKonsumsi === 0 && index > currentMonthIndex) {
+                return null;
+              }
+  
+              const biaya = totalKonsumsi * HARGA_PER_M3;
+              const konsumsiBulanLalu = index > 0 ? monthlyConsumptionData[index - 1] : 0;
+              const biayaBulanLalu = konsumsiBulanLalu * HARGA_PER_M3;
+  
+              const perbandinganVolume = totalKonsumsi - konsumsiBulanLalu;
+              const perbandinganBiaya = biaya - biayaBulanLalu;
+  
+              // Tentukan warna
+              const isNaik = perbandinganVolume > 0;
+              const colorStyle = isNaik ? { color: "red" } : { color: "green" };
+  
+              return (
+                <View key={index} style={stylesTable.tableRow}>
+                  <Text style={[stylesTable.cell, { width: 100 }]}>{months[index]}</Text>
+                  <Text style={[stylesTable.cell, { width: 150 }]}>{totalKonsumsi.toFixed(2)}</Text>
+                  <Text style={[stylesTable.cell, { width: 170 }]}>{`Rp ${biaya.toLocaleString("id-ID")}`}</Text>
+                  <Text style={[stylesTable.cell, { width: 170 }, perbandinganVolume !== 0 && colorStyle]}>
+                    {perbandinganVolume === 0 || index === 0 ? "-" : `${isNaik ? "+" : ""}${perbandinganVolume.toFixed(2)}`}
+                  </Text>
+                  <Text style={[stylesTable.cell, { width: 170 }, perbandinganBiaya !== 0 && colorStyle]}>
+                    {perbandinganBiaya === 0 || index === 0
+                      ? "-"
+                      : `Rp ${isNaik ? "+" : ""}${perbandinganBiaya.toLocaleString("id-ID")}`}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </ScrollView>
+      </View>
+      {/* --- AKHIR BLOK TABEL BULANAN --- */}
+  
+      {/* --- INI ADALAH BLOK AI REKOMENDASI BARU ANDA --- */}
+      <View style={styles.container}>
+        <Text style={styles.header2}>Rekomendasi AI</Text>
+        <TouchableOpacity
+          style={styles.aiButton}
+          onPress={getAiRecommendation}
+          disabled={isAiLoading || topKomponenData.length === 0}>
+          <Text style={styles.aiButtonText}>
+            {isAiLoading ? "Sedang Memproses..." : "Dapatkan Rekomendasi Penghematan"}
+          </Text>
+        </TouchableOpacity>
+  
+        {isAiLoading && <ActivityIndicator size="large" color="#007bff" style={{ marginVertical: 20 }} />}
+  
+        {aiRecommendation && (
+          <View style={styles.aiResultContainer}>
+            <Text style={styles.aiResultText}>{aiRecommendation}</Text>
+          </View>
+        )}
+      </View>
+      {/* --- AKHIR BLOK AI REKOMENDASI --- */}
     </ScrollView>
   );
+
+  // return (
+  //   <ScrollView showsVerticalScrollIndicator={false}>
+  //     <View style={styles.container}>
+  //       <Text style={styles.header2}>{t("progress_title")}</Text>
+  //       {/* {isLoading ? (
+  //         <Text>Loading...</Text>
+  //       ) : isError ? (
+  //         <Text>Error fetching data</Text>
+  //       ) : ( */}
+  //       <FlatList
+  //         ref={flatListRef}
+  //         horizontal
+  //         data={loopedData}
+  //         keyExtractor={(_, i) => i.toString()}
+  //         renderItem={renderItem}
+  //         showsHorizontalScrollIndicator={false}
+  //         contentContainerStyle={{ paddingHorizontal: SIDE_MARGIN }}
+  //         getItemLayout={(_, i) => ({
+  //           length: SNAP_INTERVAL,
+  //           offset: SNAP_INTERVAL * i,
+  //           index: i,
+  //         })}
+  //         scrollEventThrottle={16}
+  //         pagingEnabled
+  //         snapToInterval={SNAP_INTERVAL}
+  //         decelerationRate="fast"
+  //         onMomentumScrollEnd={handleScrollEnd}
+  //       />
+  //     </View>
+  //     <View style={styles.graphSection}>
+  //       <Text style={styles.header2}>{`${t("water_usage_chart")} (${filterType})`}</Text>
+  //       <View style={styles.dropdownContainer}>
+  //         <Text style={styles.label}>Pilih Tampilan Chart:</Text>
+  //         <View style={styles.buttonRow}>
+  //           {["yearly", "monthly", "weekly", "daily"].map((type) => (
+  //             <Text
+  //               key={type}
+  //               style={[styles.filterButton, filterType === type && styles.activeButton]}
+  //               onPress={() => setFilterType(type)}>
+  //               {type}
+  //             </Text>
+  //           ))}
+  //         </View>
+  //       </View>
+  //       {/* {isLoading ? ( */}
+  //       {/* <ActivityIndicator size="large" color="#007bff" /> */}
+  //       {/* ) : isError ? (
+  //           <Text style={{ color: "red", marginTop: 10 }}>
+  //             Gagal memuat data. Silakan coba lagi.
+  //           </Text>
+  //         ) : ( */}
+  //       <View style={{ flexDirection: "row" }}>
+  //         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+  //           <View>
+  //             <LineChart
+  //               data={{
+  //                 labels: chartLabels[filterType],
+  //                 datasets: [{ data: chartData }],
+  //               }}
+  //               width={Dimensions.get("window").width * 2}
+  //               height={300}
+  //               chartConfig={chartConfig}
+  //               bezier
+  //               onDataPointClick={({ value, x, y }) => {
+  //                 setTooltipPos({ x, y, value, visible: true });
+  //                 setTimeout(() => {
+  //                   setTooltipPos((prev) => ({ ...prev, visible: false }));
+  //                 }, 1000);
+  //               }}
+  //               style={styles.chart}
+  //             />
+
+  //             {tooltipPos.visible && (
+  //               <View
+  //                 style={{
+  //                   position: "absolute",
+  //                   left: tooltipPos.x + 10,
+  //                   top: tooltipPos.y - 10,
+  //                   backgroundColor: "rgba(0,0,0,0.7)",
+  //                   padding: 6,
+  //                   borderRadius: 6,
+  //                 }}>
+  //                 <Text style={{ color: "white", fontSize: 12 }}>{tooltipPos.value} m³</Text>
+  //               </View>
+  //             )}
+  //           </View>
+  //         </ScrollView>
+  //       </View>
+  //       {/* )} */}
+  //     </View>
+
+  //     <View style={styles.container}>
+  //       <Text style={styles.header2}>{t("top_Sensor_title")}</Text>
+  //       <Text style={styles.label2}>{t("sort_by")}</Text>
+
+  //       <View style={styles.segmentedContainer}>
+  //         {["volume", "lokasi", "tanggal"].map((item) => (
+  //           <TouchableOpacity
+  //             key={item}
+  //             style={[styles.segmentedButton, filterVolume === item && styles.segmentedButtonActive]}
+  //             onPress={() => setFilterVolume(item)}>
+  //             <Text style={[styles.segmentedButtonText, filterVolume === item && styles.segmentedButtonTextActive]}>
+  //               {item.charAt(0).toUpperCase() + item.slice(1)}
+  //             </Text>
+  //           </TouchableOpacity>
+  //         ))}
+  //       </View>
+  //     </View>
+
+  //     <>
+  //       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+  //         <View>
+  //           {/* Header */}
+  //           <View style={stylesTable.tableRowHeader}>
+  //             <Text style={[stylesTable.cellHeader, { width: 50 }]}>No</Text>
+  //             <Text style={[stylesTable.cellHeader, { width: 120 }]}>No Komponen</Text>
+  //             <Text style={[stylesTable.cellHeader, { width: 150 }]}>Lokasi</Text>
+  //             <Text style={[stylesTable.cellHeader, { width: 160 }]}>Total Volume Air</Text>
+  //             <Text style={[stylesTable.cellHeader, { width: 200 }]}>Tanggal</Text>
+  //             <Text style={[stylesTable.cellHeader, { width: 150 }]}>Perkiraan Biaya</Text>
+  //           </View>
+            
+
+  //           {/* Body */}
+  //           {/* Body */}
+  //           {topKomponenData.map((item, index) => { // <-- TAMBAHKAN {
+              
+  //             // --- TAMBAHKAN INI UNTUK MENGHITUNG BIAYA ---
+  //             const perkiraanBiaya = parseFloat(item.TotalVolumeAir) * HARGA_PER_M3;
+  //             // ---------------------------------------------
+
+  //             return ( // <-- TAMBAHKAN return (
+  //               <View key={index} style={stylesTable.tableRow}>
+  //                 <Text style={[stylesTable.cell, { width: 50 }]}>{index + 1}</Text>
+  //                 <Text style={[stylesTable.cell, { width: 120 }]} numberOfLines={1} ellipsizeMode="tail">
+  //                   {item.NoKomponen}
+  //                 </Text>
+  //                 <Text style={[stylesTable.cell, { width: 150 }]} numberOfLines={1} ellipsizeMode="tail">
+  //                   {item.Lokasi || "-"}
+  //                 </Text>
+  //                 <Text style={[stylesTable.cell, { width: 160 }]}>{parseFloat(item.TotalVolumeAir).toFixed(2)}</Text>
+  //                 <Text style={[stylesTable.cell, { width: 200 }]} numberOfLines={1} ellipsizeMode="tail">
+  //                   {new Date(item.Tanggal).toLocaleString("id-ID", {
+  //                     day: "numeric",
+  //                     month: "short",
+  //                     year: "numeric",
+  //                     hour: "2-digit",
+  //                     minute: "2-digit",
+  //                   })}
+  //                 </Text>
+  //                 <Text style={[stylesTable.cell, { width: 150 }]} numberOfLines={1}>
+  //                   {`Rp ${perkiraanBiaya.toLocaleString("id-ID")}`}
+  //                 </Text>
+  //               </View>
+  //             ); // <-- TAMBAHKAN );
+  //           })} {/* <-- TAMBAHKAN } */}
+  //         </View>
+  //       </ScrollView>
+  //     </>
+  //   </ScrollView>
+  // );
 }
 
 const styles = StyleSheet.create({
@@ -1051,5 +1365,30 @@ const stylesTable = StyleSheet.create({
   cell: {
     padding: 8,
     textAlign: "center",
+  },
+  aiButton: {
+    backgroundColor: "#28a745", // Warna hijau
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  aiButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  aiResultContainer: {
+    backgroundColor: "#e9f7ff", // Biru muda
+    borderLeftWidth: 5,
+    borderLeftColor: "#007bff",
+    padding: 15,
+    marginTop: 10,
+    borderRadius: 5,
+  },
+  aiResultText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#333",
   },
 });
