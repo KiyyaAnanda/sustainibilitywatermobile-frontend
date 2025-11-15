@@ -3,7 +3,7 @@ import axios from "axios";
 //API DIISI SESUAI IP DI KOMPUTER
 
 //WIFI Modem
-// const API_URL = "http://10.1.51.114:5255/";
+// const API_URL = "http://10.1.5.2:5255/";
 
 //WIFI Astra
 //export const API_URL = "http://172.20.10.4:5255/";
