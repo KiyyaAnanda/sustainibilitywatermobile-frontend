@@ -16,7 +16,7 @@ import Button from "../../../components/Button";
 import DropDownForm from "../../../components/DropDownForm";
 import FormLayout from "../../../components/FormLayout";
 import { stylesB, stylesDetail } from "../../../styles/globalStyles";
-import { postUser } from "../../../services/apiService";
+import { postUser, postUserArray } from "../../../services/apiService";
 import TextView from "../../../components/TextView";
 import { BottomTabBar } from "@react-navigation/bottom-tabs";
 import { RollInRight } from "react-native-reanimated";
@@ -44,7 +44,7 @@ const EvaluasiTargetDetail = () => {
         setIsError({ error: false, message: "" });
         try {
           setIsLoading(true);
-          const data = await postUser(
+          const data = await postUserArray(
             "MasterEvaluasiTarget/DetailEvaluasiTarget",
             { id: id }
           );

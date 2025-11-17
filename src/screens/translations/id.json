@@ -151,5 +151,10 @@
   "components_water_usage": "Sensor Penggunaan Air",
   "component_preventive_maintenance": "Daftar Sensor Bocor",
   "component_planning": "Perencanaan Sensor",
-  "component_description": "Deskripsi Pengecekan Sensor"
+  "component_description": "Deskripsi Pengecekan Sensor",
+
+  "yearly": "Tahunan",
+  "monthly": "Bulanan",
+  "weekly": "Mingguan"
+
 }

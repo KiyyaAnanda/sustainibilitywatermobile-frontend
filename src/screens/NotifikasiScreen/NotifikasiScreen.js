@@ -11,7 +11,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { postUser } from "../../services/apiService";
+import { postUser, postUserArray } from "../../services/apiService";
 import { APPLICATION_ID } from "../../Util/Constants";
 
 const NotifikasiScreen = ({ navigation }) => {
@@ -63,7 +63,7 @@ const NotifikasiScreen = ({ navigation }) => {
 
     try {
       setLoading(true);
-      const data = await postUser(
+      const data = await postUserArray(
         "Utilities/GetDataNotifikasiMobile",
         currentFilter
       );

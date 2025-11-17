@@ -18,7 +18,7 @@ import {
 } from "@react-navigation/native";
 import FormLayoutHistory from "../../../components/FormLayoutHistory";
 import { stylesB, stylesDetail } from "../../../styles/globalStyles";
-import { postUser } from "../../../services/apiService";
+import { postUser, postUserArray } from "../../../services/apiService";
 import TextView from "../../../components/TextView";
 import DetailHistoryCard from "../../../components/DetailHistoryCard";
 
@@ -41,7 +41,7 @@ const PenggunaanAirDetail = () => {
       const fetchData = async () => {
         setIsError({ error: false, message: "" });
         try {
-          const data = await postUser(
+          const data = await postUserArray(
             "TransaksiPenggunaanAir/DetailPenggunaanAirHarianMobile",
             { id, idcom }
           );
@@ -59,7 +59,7 @@ const PenggunaanAirDetail = () => {
       const fetchDataHistory = async () => {
         setIsError({ error: false, message: "" });
         try {
-          const data = await postUser(
+          const data = await postUserArray(
             "TransaksiPenggunaanAir/DetailPenggunaanAirHarianHistoryMobile",
             { id }
           );

@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   },
   disabledInput: {
     borderColor: "#ccc",
-    opacity: "0.6",
+    opacity: 0.6,
   },
   errorText: {
     marginTop: 2,

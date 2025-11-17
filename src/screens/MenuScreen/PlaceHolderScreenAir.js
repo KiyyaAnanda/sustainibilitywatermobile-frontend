@@ -1,40 +1,39 @@
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-  StatusBar,
-  Image,
-  Pressable,
-  Switch,
-} from "react-native";
+import { Entypo, FontAwesome, FontAwesome6, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
+import LottieView from "lottie-react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  MaterialIcons,
-  FontAwesome,
-  Entypo,
-  Ionicons,
-  FontAwesome6,
-} from "@expo/vector-icons";
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import { useFocusEffect } from "@react-navigation/native";
-import LottieView from "lottie-react-native";
-import ButtonAdd from "../../components/ButtonAdd";
+  Dimensions,
+  FlatList,
+  Image,
+  Platform,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import FotoProfile from "../../assets/picturePng/FotoProfile.png";
-import LokasiSensorTab from "../../tabs/tabAir/MasterLokasiSensor/LokasiSensorTab";
-import KomponenAirTab from "../../tabs/tabAir/MasterKomponenAir/KomponenAirTab";
-import EvaluasiTargetTab from "../../tabs/tabAir/MasterEvaluasiTarget/EvaluasiTargetTab";
-import PenggunaanAirTab from "../../tabs/tabAir/TransaksiPenggunaanAir/PenggunaanAirTab";
-import HeaderUser from "../../components/Header";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Filter from "../../components/Filter";
+import ButtonAdd from "../../components/ButtonAdd";
 import DropDown from "../../components/DropDown";
-import { postUser, API_URL } from "../../services/apiService"; // Pastikan path ini sesuai dengan struktur project kamu
+import Filter from "../../components/Filter";
+import HeaderUser from "../../components/Header";
+import { API_URL, postUser } from "../../services/apiService"; // Pastikan path ini sesuai dengan struktur project kamu
+import EvaluasiTargetTab from "../../tabs/tabAir/MasterEvaluasiTarget/EvaluasiTargetTab";
+import KomponenAirTab from "../../tabs/tabAir/MasterKomponenAir/KomponenAirTab";
+import LokasiSensorTab from "../../tabs/tabAir/MasterLokasiSensor/LokasiSensorTab";
 import KontrolKomponenAirTab from "../../tabs/tabAir/TransaksiKontrolKomponenAir/KontrolKomponenAirTab";
+import PenggunaanAirTab from "../../tabs/tabAir/TransaksiPenggunaanAir/PenggunaanAirTab";
+
+const { width, height } = Dimensions.get("window");
 
 const PlaceHolderScreenAir = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -98,53 +97,23 @@ const PlaceHolderScreenAir = () => {
   const tabs = [
     {
       name: t("master_sensor_location"),
-      icon: (isActive) => (
-        <FontAwesome6
-          name="map-location-dot"
-          size={24}
-          color={isActive ? "#0455cc" : "white"}
-        />
-      ),
+      icon: (isActive) => <FontAwesome6 name="map-location-dot" size={24} color={isActive ? "#0455cc" : "white"} />,
     },
     {
       name: t("sensor_water"),
-      icon: (isActive) => (
-        <Ionicons
-          name="water"
-          size={24}
-          color={isActive ? "#0455cc" : "white"}
-        />
-      ),
+      icon: (isActive) => <Ionicons name="water" size={24} color={isActive ? "#0455cc" : "white"} />,
     },
     {
       name: t("target_evaluation"),
-      icon: (isActive) => (
-        <FontAwesome
-          name="fire"
-          size={24}
-          color={isActive ? "#0455cc" : "white"}
-        />
-      ),
+      icon: (isActive) => <FontAwesome name="fire" size={24} color={isActive ? "#0455cc" : "white"} />,
     },
     {
       name: t("water_usage"),
-      icon: (isActive) => (
-        <FontAwesome
-          name="bar-chart"
-          size={24}
-          color={isActive ? "#0455cc" : "white"}
-        />
-      ),
+      icon: (isActive) => <FontAwesome name="bar-chart" size={24} color={isActive ? "#0455cc" : "white"} />,
     },
     {
       name: t("preventive_maintenance"),
-      icon: (isActive) => (
-        <FontAwesome
-          name="wrench"
-          size={24}
-          color={isActive ? "#0455cc" : "white"}
-        />
-      ),
+      icon: (isActive) => <FontAwesome name="wrench" size={24} color={isActive ? "#0455cc" : "white"} />,
     },
   ];
 
@@ -298,28 +267,24 @@ const PlaceHolderScreenAir = () => {
 
   if (!userProfile) {
     return (
-      <LinearGradient
-        colors={["#0973FF", "#054599"]}
-        style={[stylesLoading.container, { justifyContent: "center" }]}
-      >
+      <LinearGradient colors={["#0973FF", "#054599"]} style={[stylesLoading.container, { justifyContent: "center" }]}>
         <LottieView
           source={require("../../assets/lottieAnimation/CuteBoyRunning_Loading.json")}
           autoPlay
           loop
           style={{ width: 150, height: 150 }}
         />
-        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>
-          {t("loading")}
-        </Text>
+        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>{t("loading")}</Text>
       </LinearGradient>
     );
   } else {
     return (
       <LinearGradient colors={["#0973FF", "#054599"]} style={styles.gradient}>
-        <SafeAreaView style={styles.container}>
-          {/* Header Section */}
-          <LinearGradient colors={["#0973FF", "#054599"]} style={styles.header}>
-            {/* <HeaderUser
+        <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+          <View style={styles.container}>
+            {/* Header Section */}
+            <LinearGradient colors={["#0973FF", "#054599"]} style={styles.header}>
+              {/* <HeaderUser
             photoSource={
               user?.foto
                 ? { uri: `${API_URL}/UploadProfile/${user.foto}` }
@@ -331,170 +296,194 @@ const PlaceHolderScreenAir = () => {
               console.log("Logout ditekan");
             }}
           /> */}
-            <HeaderUser
-              photoSource={{
-                uri:
-                  userProfile.usc_foto !== null
-                    ? //user?.foto
-                      `${API_URL}Uploads/${userProfile.usc_foto}`
-                    : `${API_URL}Uploads/fotonotfound.jpg`,
-              }}
-              name={user?.nama || "Guest"}
-              role={user?.role || "No Role"}
-              onLogout={async () => {
-                try {
-                  await AsyncStorage.removeItem("activeUser");
-                  navigation.navigate("LoginScreen");
-                } catch (error) {
-                  console.error("Gagal logout:", error);
-                }
-              }}
-              customStyles={{
-                header: stylesAvatar.header,
-                username: stylesAvatar.username,
-                position: stylesAvatar.position,
-                avatar: stylesAvatar.avatar,
-                logoutIconColor: "white", // ini bukan style object
-              }}
-            />
+              <HeaderUser
+                photoSource={{
+                  uri:
+                    userProfile.usc_foto !== null
+                      ? //user?.foto
+                        `${API_URL}Uploads/${userProfile.usc_foto}`
+                      : `${API_URL}Uploads/fotonotfound.jpg`,
+                }}
+                name={user?.nama || "Guest"}
+                role={user?.role || "No Role"}
+                onLogout={async () => {
+                  try {
+                    await AsyncStorage.removeItem("activeUser");
+                    navigation.navigate("LoginScreen");
+                  } catch (error) {
+                    console.error("Gagal logout:", error);
+                  }
+                }}
+                customStyles={{
+                  header: stylesAvatar.header,
+                  username: stylesAvatar.username,
+                  position: stylesAvatar.position,
+                  avatar: stylesAvatar.avatar,
+                  logoutIconColor: "white", // ini bukan style object
+                }}
+              />
 
-            {/* Search Bar */}
-            {/* <TextInput
+              {/* Search Bar */}
+              {/* <TextInput
             style={styles.searchBar}
             placeholder="Cari layanan atau informasi..."
             placeholderTextColor="#999"
             /> */}
-            <View style={styles.searchBarWrapper}>
-              <TextInput
-                style={styles.searchBarInput}
-                placeholder="Cari layanan atau informasi..."
-                placeholderTextColor="#999"
-                value={searchParams.query}
-                onChangeText={(text) =>
-                  setSearchParams((prev) => ({ ...prev, query: text, page: 1 }))
-                }
-              />
-              <View style={styles.filterWrapper}>
-                <Filter>
-                  {/* dropdown seperti sebelumnya */}
-                  <DropDown
-                    label="Pilih Filter"
-                    // type="pilih"
-                    arrData={getFilterSortData()}
-                    selectedValue={searchFilterSort}
-                    onValueChange={(val) => {
-                      setSearchFilterSort(val);
-                      setSearchParams((prev) => ({
-                        ...prev,
-                        page: 1,
-                        sort: val,
-                      }));
-                    }}
-                    pickerWrapper={{
-                      borderWidth: 0,
-                      borderColor: "#ccc",
-                      borderRadius: 10,
-                      overflow: "hidden",
-                      height: 80, // atur tinggi dropdown
-                      width: "100%", // bisa diganti ke ukuran tetap, contoh: 200
-                      justifyContent: "center",
-                    }}
-                  />
-                  {activeTab === 0 && (
+              <View style={styles.searchBarWrapper}>
+                <TextInput
+                  style={styles.searchBarInput}
+                  placeholder="Cari layanan atau informasi..."
+                  placeholderTextColor="#999"
+                  value={searchParams.query}
+                  onChangeText={(text) =>
+                    setSearchParams((prev) => ({
+                      ...prev,
+                      query: text,
+                      page: 1,
+                    }))
+                  }
+                />
+                <View style={styles.filterWrapper}>
+                  <Filter>
+                    {/* dropdown seperti sebelumnya */}
                     <DropDown
-                      label="Status"
-                      type="pilih"
-                      arrData={dataLokasiFilterStatus}
-                      selectedValue={searchParams.status}
+                      label="Pilih Filter"
+                      // type="pilih"
+                      arrData={getFilterSortData()}
+                      selectedValue={searchFilterSort}
                       onValueChange={(val) => {
+                        setSearchFilterSort(val);
                         setSearchParams((prev) => ({
                           ...prev,
                           page: 1,
-                          status: val,
+                          sort: val,
                         }));
                       }}
                       pickerWrapper={{
                         borderWidth: 0,
                         borderColor: "#ccc",
-                        borderRadius: 4,
+                        borderRadius: 10,
                         overflow: "hidden",
                         height: 80, // atur tinggi dropdown
                         width: "100%", // bisa diganti ke ukuran tetap, contoh: 200
                         justifyContent: "center",
                       }}
                     />
-                  )}
-                  {activeTab === 4 && (
-                    <DropDown
-                      label="Status"
-                      type="pilih"
-                      arrData={dataTRKontrolKomponenAirStatus}
-                      selectedValue={searchParams.status}
-                      onValueChange={(val) => {
-                        setSearchParams((prev) => ({
-                          ...prev,
-                          page: 1,
-                          status: val,
-                        }));
-                      }}
-                      pickerWrapper={{
-                        borderWidth: 0,
-                        borderColor: "#ccc",
-                        borderRadius: 4,
-                        overflow: "hidden",
-                        height: 80, // atur tinggi dropdown
-                        width: "100%", // bisa diganti ke ukuran tetap, contoh: 200
-                        justifyContent: "center",
-                      }}
-                    />
-                  )}
-                </Filter>
+                    {activeTab === 0 && (
+                      <DropDown
+                        label="Status"
+                        type="pilih"
+                        arrData={dataLokasiFilterStatus}
+                        selectedValue={searchParams.status}
+                        onValueChange={(val) => {
+                          setSearchParams((prev) => ({
+                            ...prev,
+                            page: 1,
+                            status: val,
+                          }));
+                        }}
+                        pickerWrapper={{
+                          borderWidth: 0,
+                          borderColor: "#ccc",
+                          borderRadius: 4,
+                          overflow: "hidden",
+                          height: 80, // atur tinggi dropdown
+                          width: "100%", // bisa diganti ke ukuran tetap, contoh: 200
+                          justifyContent: "center",
+                        }}
+                      />
+                    )}
+                    {activeTab === 4 && (
+                      <DropDown
+                        label="Status"
+                        type="pilih"
+                        arrData={dataTRKontrolKomponenAirStatus}
+                        selectedValue={searchParams.status}
+                        onValueChange={(val) => {
+                          setSearchParams((prev) => ({
+                            ...prev,
+                            page: 1,
+                            status: val,
+                          }));
+                        }}
+                        pickerWrapper={{
+                          borderWidth: 0,
+                          borderColor: "#ccc",
+                          borderRadius: 4,
+                          overflow: "hidden",
+                          height: 80, // atur tinggi dropdown
+                          width: "100%", // bisa diganti ke ukuran tetap, contoh: 200
+                          justifyContent: "center",
+                        }}
+                      />
+                    )}
+                  </Filter>
+                </View>
               </View>
-            </View>
 
-            {/* Feature Cards */}
-            <ScrollView
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              pagingEnabled={true}
-            >
-              <View style={styles.featureCards}>
-                {tabs.map((tab, index) => {
+              {/* Feature Cards */}
+              {/* <ScrollView
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+                pagingEnabled={true}
+              >
+                <View style={styles.featureCards}>
+                  {tabs.map((tab, index) => {
+                    const isActive = activeTab === index;
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={[
+                          styles.featureCard,
+                          isActive && styles.featureCardActive,
+                        ]}
+                        onPress={() => setActiveTab(index)}
+                      >
+                        {tab.icon(isActive)}
+                        <Text
+                          style={[
+                            styles.featureText,
+                            isActive && styles.featureTextActive,
+                          ]}
+                        >
+                          {tab.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </ScrollView> */}
+
+              <FlatList
+                data={tabs}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(_, idx) => idx.toString()}
+                contentContainerStyle={styles.featureCards}
+                renderItem={({ item, index }) => {
                   const isActive = activeTab === index;
                   return (
                     <TouchableOpacity
-                      key={index}
-                      style={[
-                        styles.featureCard,
-                        isActive && styles.featureCardActive,
-                      ]}
-                      onPress={() => setActiveTab(index)}
-                    >
-                      {tab.icon(isActive)}
-                      <Text
-                        style={[
-                          styles.featureText,
-                          isActive && styles.featureTextActive,
-                        ]}
-                      >
-                        {tab.name}
-                      </Text>
+                      style={[styles.featureCard, isActive && styles.featureCardActive]}
+                      onPress={() => setActiveTab(index)}>
+                      {item.icon(isActive)}
+                      <Text style={[styles.featureText, isActive && styles.featureTextActive]}>{item.name}</Text>
                     </TouchableOpacity>
                   );
-                })}
-              </View>
+                }}
+              />
+            </LinearGradient>
+
+            {/* Main Content */}
+            <ScrollView
+              style={styles.mainContent}
+              contentContainerStyle={{ paddingBottom: 25 }}
+              showsVerticalScrollIndicator={false}>
+              {renderActiveTabContent()}
             </ScrollView>
-          </LinearGradient>
 
-          {/* Main Content */}
-          <ScrollView
-            style={styles.mainContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {renderActiveTabContent()}
-          </ScrollView>
-
-          {/* Bottom Navigation */}
+            {/* Bottom Navigation */}
+          </View>
         </SafeAreaView>
       </LinearGradient>
     );
@@ -551,6 +540,9 @@ const stylesLoading = StyleSheet.create({
 const styles = StyleSheet.create({
   gradient: {
     flex: 1,
+    // paddingTop: height * 0.05,
+    // alignItems: "center"
+    // paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   container: {
     flex: 1,

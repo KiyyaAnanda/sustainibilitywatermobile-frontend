@@ -18,7 +18,7 @@ import Button from "../../../components/Button";
 import DropDownForm from "../../../components/DropDownForm";
 import FormLayoutHistory from "../../../components/FormLayoutHistory";
 import { stylesB, stylesDetail } from "../../../styles/globalStyles";
-import { postUser } from "../../../services/apiService";
+import { postUser, postUserArray } from "../../../services/apiService";
 import TextView from "../../../components/TextView";
 import SensorList from "../../../components/SensorList"; // PASTIKAN ini diimpor
 import Paging from "../../../components/Paging";
@@ -54,7 +54,7 @@ const KomponenAirDetail = () => {
       const fetchData = async () => {
         setIsError({ error: false, message: "" });
         try {
-          const data = await postUser("MasterKomponenAir/DetailKomponenAir", {
+          const data = await postUserArray("MasterKomponenAir/DetailKomponenAir", {
             id,
           });
           if (data === "ERROR" || !data || data.length === 0) {
@@ -85,7 +85,7 @@ const KomponenAirDetail = () => {
     useCallback(() => {
       const loadUser = async () => {
         try {
-          const data = await postUser(
+          const data = await postUserArray(
             "MasterKomponenAir/DetailLogKomponenAir",
             { id }
           );

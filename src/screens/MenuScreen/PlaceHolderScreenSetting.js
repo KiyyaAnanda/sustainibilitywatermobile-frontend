@@ -104,22 +104,16 @@ const SettingScreen = ({ navigation }) => {
   }
 
   return (
-    <LinearGradient
-      colors={["#0973FF", "#054599"]}
-      style={styles.gradientContainer}
-    >
+    <LinearGradient colors={["#0973FF", "#054599"]} style={styles.gradientContainer}>
       <Text style={styles.header}>{t("settings_title")}</Text>
 
       <View style={{ width: "100%", alignItems: "center" }}>
-        <Image
-          source={MIpng}
-          style={{ width: 220, height: 220, marginRight: 150, marginTop: 0 }}
-        />
+        <Image source={MIpng} style={{ width: 220, height: 220, marginRight: 150, marginTop: 0 }} />
       </View>
 
       <View style={styles.container}>
         <View style={styles.scrollWrapper}>
-          <ScrollView contentContainerStyle={styles.list}>
+          <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
             {settingsOptions.map((item, index) => (
               <TouchableOpacity
                 key={index}
@@ -139,25 +133,19 @@ const SettingScreen = ({ navigation }) => {
                   } else if (item.route) {
                     navigation.navigate(item.route);
                   }
-                }}
-              >
+                }}>
                 <View style={styles.leftContent}>
                   <View style={styles.iconWrapper}>
                     <Icon name={item.icon} size={20} color="#054599" />
-                    {item.icon === "notifications" &&
-                      countNotifications > 0 && (
-                        <View style={styles.badge}>
-                          <Text style={styles.badgeText}>
-                            {countNotifications}
-                          </Text>
-                        </View>
-                      )}
+                    {item.icon === "notifications" && countNotifications > 0 && (
+                      <View style={styles.badge}>
+                        <Text style={styles.badgeText}>{countNotifications}</Text>
+                      </View>
+                    )}
                   </View>
                   <Text style={styles.optionText}>{t(item.titleKey)}</Text>
                 </View>
-                {item.route && (
-                  <Icon name="chevron-right" size={24} color="#aaa" />
-                )}
+                {item.route && <Icon name="chevron-right" size={24} color="#aaa" />}
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -191,6 +179,7 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingBottom: 20,
+    paddingHorizontal: 5,
   },
   option: {
     flexDirection: "row",

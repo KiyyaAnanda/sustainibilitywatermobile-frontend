@@ -14,7 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
-import { postUser, API_URL } from "../../services/apiService";
+import { postUser, API_URL, postUserArray } from "../../services/apiService";
 import { formatTanggalLahir } from "../../Util/Formatting";
 
 const ProfileScreen = ({ navigation }) => {
@@ -57,11 +57,13 @@ const ProfileScreen = ({ navigation }) => {
 
       const loadUserProfile = async () => {
         try {
-          const data = await postUser("MasterProfile/GetDataProfile", {
+          const data = await postUserArray("MasterProfile/GetDataProfile", {
             username: user.username,
             role: user.role,
           });
+          console.log("datatype profile:", typeof data);
           console.log("Data profile:", data);
+          console.log("Data 0 : ", data[0]);
 
           setUserProfile(data[0]);
         } catch (error) {
@@ -70,7 +72,7 @@ const ProfileScreen = ({ navigation }) => {
       };
 
       loadUserProfile();
-    }, [user])
+    }, [user]),
   );
 
   if (!userProfile) {

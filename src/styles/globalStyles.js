@@ -137,6 +137,8 @@ export const stylesDetail = StyleSheet.create({
     marginTop: 300,
     minHeight: 700, // ✅ gunakan minHeight agar tetap tinggi minimum, tapi bisa tumbuh
     zIndex: 1,
+    // justifyContent: "center", // ✅ center secara vertikal
+    alignItems: "center", // ✅ center secara horizontal
   },
   rectangle: {
     width: 345,
@@ -151,7 +153,8 @@ export const stylesDetail = StyleSheet.create({
     position: "absolute",
     top: 0,
     left: 0,
-    marginLeft: 28, // sesuaikan jarak ke kiri
-    marginTop: 35, // sesuaikan jarak ke atas
+    right: 0,
+     paddingHorizontal: 28, // ganti marginLeft jadi padding biar proporsional
+  paddingTop: 35, // ganti marginTop biar lebih fleksibel
   },
 });

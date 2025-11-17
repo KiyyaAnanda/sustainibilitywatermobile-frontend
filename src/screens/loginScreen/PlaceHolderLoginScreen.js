@@ -1,16 +1,16 @@
 import { useRef, useEffect, useState, useContext } from "react";
 import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Animated,
-  Dimensions,
-  TouchableOpacity,
-  TextInput,
-  ActivityIndicator, // DIGUNAKAN UNTUK SPINNING
-  Modal,
-  FlatList,
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  Animated,
+  Dimensions,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  Modal,
+  FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -19,7 +19,7 @@ import { Ionicons as Icon } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { postUser } from "../../services/apiService";
+import { postUser, postUserArray } from "../../services/apiService";
 import { useTranslation } from "react-i18next";
 
 const { width, height } = Dimensions.get("window");
@@ -44,18 +44,14 @@ const PlaceHolderLoginScreen = () => {
     "Poppins-Regular": require("../../../assets/fonts/Poppins-Regular.ttf"),
   });
 
-  const { t } = useTranslation();
-
-  const handleAddLogin = async () => {
-    // 1. Mulai Loading
-    setIsLoading(true); 
-
-    const loadUserProfile = async () => {
-      try {
-        const data = await postUser("Utilities/LoginHP", {
-          username: username,
-          password: password,
-        });
+  const { t } = useTranslation();
+  const handleAddLogin = async () => {
+    const loadUserProfile = async () => {
+      try {
+        const data = await postUser("Utilities/LoginHP", {
+          username: username,
+          password: password,
+        });
 
         // 1. Pengecekan Kegagalan Koneksi
         if (data === "ERROR") {
@@ -278,174 +274,174 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  signInText: {
-    color: "#407BFF",
-    fontWeight: "600",
-  },
-  container: {
-    flex: 1,
-    justifyContent: "flex-end",
-    alignItems: "center",
-  },
-  curvedRectangle: {
-    width: width,
-    height: height * 0.73,
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 60,
-    borderTopRightRadius: 60,
-    justifyContent: "flex-end",
-    // paddingBottom: 340,
-  },
-  image: {
-    width: 500,
-    height: 500,
-    right: 105,
-    top: 300,
-  },
-  title: {
-    fontSize: 28,
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  form: {
-    flex: 1,
-    marginTop: 60,
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 55,
-    borderTopRightRadius: 55,
-    padding: 25,
-    justifyContent: "space-between",
-  },
-  label: {
-    fontFamily: "Poppins-Bold", // <-- pakai Poppins reguler
-    fontSize: 14,
-    color: "#333",
-    marginBottom: 6,
-    marginTop: 10,
-    left: 15,
-  },
-  inputPass: {
-    fontFamily: "Poppins-Regular",
-    backgroundColor: "#EEF2FF",
-    borderRadius: 60,
-    paddingHorizontal: 5,
-    paddingVertical: 12,
-    paddingTop: 13,
-    fontSize: 14,
-    marginBottom: -2,
-    textAlignVertical: "center",
-  },
-  input: {
-    fontFamily: "Poppins-Regular",
-    backgroundColor: "#EEF2FF",
-    borderRadius: 60,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    paddingTop: 12,
-    marginBottom: 5,
-    fontSize: 14,
-  },
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#EEF2FF",
-    borderRadius: 60,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-  },
-  // loginButton: {
-  //   backgroundColor: "#4C00FF",
-  //   paddingVertical: 10,
-  //   width: 170,
-  //   borderRadius: 12,
-  //   marginTop: 20,
-  //   alignItems: "center",
-  //   shadowColor: "#000",
-  //   shadowOpacity: 0.15,
-  //   shadowOffset: { width: 0, height: 4 },
-  //   shadowRadius: 6,
-  //   elevation: 5,
-  //   borderRadius: 60,
-  //   left: 85,
-  // },
-  // loginText: {
-  //   fontFamily: "Poppins-Bold",
-  //   color: "#fff",
-  //   fontSize: 16,
-  // },
-  loginButton: {
-    backgroundColor: "#0973FF",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    alignItems: "center",
-    borderRadius: 8,
-  },
-  loginText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  forgotText: {
-    textAlign: "center",
-    marginTop: 12,
-    fontSize: 13,
-    color: "#444",
-  },
-  fingerprintText: {
-    fontFamily: "Poppins-Regular",
-    textAlign: "center",
-    marginTop: 10,
-    fontSize: 13,
-    color: "#444",
-  },
-  orText: {
-    textAlign: "center",
-    marginVertical: 15,
-    color: "#888",
-    fontSize: 13,
-  },
-  socialIcons: {
-    flexDirection: "row",
-    justifyContent: "space-evenly",
-    marginHorizontal: 50,
-  },
-  welcomeText: {
-    fontFamily: "Poppins-Bold",
-    fontSize: 26,
-    color: "#fff",
-    marginTop: 60,
-    alignSelf: "center",
-    bottom: 120,
-    left: 8,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    width: "80%",
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 20,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontFamily: "Poppins-Bold",
-    marginBottom: 10,
-  },
-  modalItem: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    paddingHorizontal: 10,
-  },
-  modalText: {
-    fontSize: 16,
-    fontFamily: "Poppins-Regular",
-    color: "#333",
-  },
+  signInText: {
+    color: "#407BFF",
+    fontWeight: "600",
+  },
+  container: {
+    flex: 1,
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
+  curvedRectangle: {
+    width: width,
+    height: height * 0.73,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 60,
+    borderTopRightRadius: 60,
+    justifyContent: "flex-end",
+    // paddingBottom: 340,
+  },
+  image: {
+    width: 500,
+    height: 500,
+    right: 105,
+    top: 300,
+  },
+  title: {
+    fontSize: 28,
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  form: {
+    flex: 1,
+    marginTop: 60,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 55,
+    borderTopRightRadius: 55,
+    padding: 25,
+    justifyContent: "space-between",
+  },
+  label: {
+    fontFamily: "Poppins-Bold", // <-- pakai Poppins reguler
+    fontSize: 14,
+    color: "#333",
+    marginBottom: 6,
+    marginTop: 10,
+    left: 15,
+  },
+  inputPass: {
+    fontFamily: "Poppins-Regular",
+    backgroundColor: "#EEF2FF",
+    borderRadius: 60,
+    paddingHorizontal: 5,
+    paddingVertical: 12,
+    paddingTop: 13,
+    fontSize: 14,
+    marginBottom: -2,
+    textAlignVertical: "center",
+  },
+  input: {
+    fontFamily: "Poppins-Regular",
+    backgroundColor: "#EEF2FF",
+    borderRadius: 60,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    paddingTop: 12,
+    marginBottom: 5,
+    fontSize: 14,
+  },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#EEF2FF",
+    borderRadius: 60,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+  },
+  // loginButton: {
+  //   backgroundColor: "#4C00FF",
+  //   paddingVertical: 10,
+  //   width: 170,
+  //   borderRadius: 12,
+  //   marginTop: 20,
+  //   alignItems: "center",
+  //   shadowColor: "#000",
+  //   shadowOpacity: 0.15,
+  //   shadowOffset: { width: 0, height: 4 },
+  //   shadowRadius: 6,
+  //   elevation: 5,
+  //   borderRadius: 60,
+  //   left: 85,
+  // },
+  // loginText: {
+  //   fontFamily: "Poppins-Bold",
+  //   color: "#fff",
+  //   fontSize: 16,
+  // },
+  loginButton: {
+    backgroundColor: "#0973FF",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    borderRadius: 8,
+  },
+  loginText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  forgotText: {
+    textAlign: "center",
+    marginTop: 12,
+    fontSize: 13,
+    color: "#444",
+  },
+  fingerprintText: {
+    fontFamily: "Poppins-Regular",
+    textAlign: "center",
+    marginTop: 10,
+    fontSize: 13,
+    color: "#444",
+  },
+  orText: {
+    textAlign: "center",
+    marginVertical: 15,
+    color: "#888",
+    fontSize: 13,
+  },
+  socialIcons: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    marginHorizontal: 50,
+  },
+  welcomeText: {
+    fontFamily: "Poppins-Bold",
+    fontSize: 26,
+    color: "#fff",
+    marginTop: 60,
+    alignSelf: "center",
+    bottom: 120,
+    left: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: "80%",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontFamily: "Poppins-Bold",
+    marginBottom: 10,
+  },
+  modalItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+    paddingHorizontal: 10,
+  },
+  modalText: {
+    fontSize: 16,
+    fontFamily: "Poppins-Regular",
+    color: "#333",
+  },
 });
 
 export default PlaceHolderLoginScreen;

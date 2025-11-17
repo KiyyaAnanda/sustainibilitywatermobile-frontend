@@ -12,6 +12,7 @@ import {
   TouchableWithoutFeedback,
   Platform,
   KeyboardAvoidingView,
+  ScrollView
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import DropDown from "../../../components/DropDown";
@@ -22,7 +23,7 @@ import FormLayout from "../../../components/FormLayout";
 import { stylesB } from "../../../styles/globalStyles";
 import * as yup from "yup";
 import { validateAllInputs, validateInput } from "../../../Util/ValdiationForm";
-import { postUser } from "../../../services/apiService";
+import { postUser, postUserArray } from "../../../services/apiService";
 
 const EvaluasiTargetAdd = () => {
   const navigation = useNavigation();
@@ -137,7 +138,7 @@ const EvaluasiTargetAdd = () => {
         delete dataToSend.bulan;
         delete dataToSend.tahun;
 
-        const data = await postUser(
+        const data = await postUserArray(
           "MasterEvaluasiTarget/CreateEvaluasiTarget",
           dataToSend
         );
@@ -182,6 +183,7 @@ const EvaluasiTargetAdd = () => {
     <FormLayout
       source={require("../../../assets/picturePng/EvaluasiTarget.png")}
     >
+      <ScrollView contentContainerStyle={stylesB.trformContainer}>
       <View style={stylesB.formContainer}>
         <Text style={stylesB.title}>{t("add_evaluation_target")}</Text>
 
@@ -299,6 +301,7 @@ const EvaluasiTargetAdd = () => {
           textStyle={{ color: "#fff", fontWeight: "bold" }}
         />
       </View>
+      </ScrollView>
     </FormLayout>
   );
 };

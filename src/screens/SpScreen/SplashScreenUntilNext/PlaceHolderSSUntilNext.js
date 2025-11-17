@@ -1,19 +1,12 @@
-import React, { useRef, useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Animated,
-  Dimensions,
-  TouchableOpacity,
-} from "react-native";
-import M1TA from "../../../assets/picturePng/mahasiwa1TA.png";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import M2kiri from "../../../assets/picturePng/M2TKF.png";
 import M3kanan from "../../../assets/picturePng/mahasiswa3kanan.png";
 import M4TB from "../../../assets/picturePng/mahasiswa4TB.png";
-import M2kiri from "../../../assets/picturePng/M2TKF.png";
-import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation } from "@react-navigation/native";
+import M1TA from "../../../assets/picturePng/mahasiwa1TA.png";
 
 const { width, height } = Dimensions.get("window");
 
@@ -79,6 +72,30 @@ const PlaceHolderSSnextFirst = () => {
 
     // Cleanup untuk clear timeout kalau komponen unmount
     return () => clearTimeout(timer);
+  }, []);
+
+  const checkOnboardingStatus = async () => {
+    try {
+      const hasSeenOnboarding = await AsyncStorage.getItem("hasSeenOnboarding");
+      if (hasSeenOnboarding === "true") {
+        navigation.replace("LoginScreen");
+      }
+    } catch (error) {
+      console.error("Error checking onboarding status:", error);
+    }
+  };
+
+  const completeOnboarding = async () => {
+    try {
+      await AsyncStorage.setItem("hasSeenOnboarding", "true");
+      navigation.replace("LoginScreen");
+    } catch (error) {
+      console.error("Error saving onboarding status:", error);
+    }
+  };
+
+  useEffect(() => {
+    checkOnboardingStatus();
   }, []);
 
   const [isNextDisabled, setIsNextDisabled] = useState(false);
@@ -189,14 +206,11 @@ const PlaceHolderSSnextFirst = () => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={["#0973FF", "#054599"]}
-        style={StyleSheet.absoluteFill}
-      />
+      <LinearGradient colors={["#0973FF", "#054599"]} style={StyleSheet.absoluteFill} />
       <TouchableOpacity
         style={styles.skipButton}
-        onPress={() => navigation.navigate("LoginScreen")}
-      >
+        // onPress={() => navigation.navigate("LoginScreen")}
+        onPress={completeOnboarding}>
         <Text style={styles.skipText}>Lewati</Text>
       </TouchableOpacity>
       {/* Gambar Awal (KIRI & KANAN) */}
@@ -211,13 +225,8 @@ const PlaceHolderSSnextFirst = () => {
               bottom: height * 0.6 - 70,
               transform: [{ translateY: slideAnimKiri }],
               opacity: opacityKiri,
-            }}
-          >
-            <Image
-              source={M3kanan}
-              style={{ width: "100%", height: "100%" }}
-              resizeMode="contain"
-            />
+            }}>
+            <Image source={M3kanan} style={{ width: "100%", height: "100%" }} resizeMode="contain" />
           </Animated.View>
 
           <Animated.View
@@ -229,13 +238,8 @@ const PlaceHolderSSnextFirst = () => {
               bottom: height * 0.6 - 70,
               transform: [{ translateY: slideAnimKanan }],
               opacity: opacityKanan,
-            }}
-          >
-            <Image
-              source={M1TA}
-              style={{ width: "100%", height: "100%" }}
-              resizeMode="contain"
-            />
+            }}>
+            <Image source={M1TA} style={{ width: "100%", height: "100%" }} resizeMode="contain" />
           </Animated.View>
         </>
       )}
@@ -251,13 +255,8 @@ const PlaceHolderSSnextFirst = () => {
             bottom: height * 0.6 - 70,
             transform: [{ translateY: slideAnimM4TB }],
             opacity: opacityM4TB,
-          }}
-        >
-          <Image
-            source={M4TB}
-            style={{ width: "100%", height: "100%", right: 60 }}
-            resizeMode="contain"
-          />
+          }}>
+          <Image source={M4TB} style={{ width: "100%", height: "100%", right: 60 }} resizeMode="contain" />
         </Animated.View>
       )}
 
@@ -271,13 +270,8 @@ const PlaceHolderSSnextFirst = () => {
             bottom: height * 0.6 - 70,
             transform: [{ translateY: slideAnimM2kiri }],
             opacity: opacityM2kiri,
-          }}
-        >
-          <Image
-            source={M2kiri}
-            style={{ width: "100%", height: "100%", left: 15 }}
-            resizeMode="contain"
-          />
+          }}>
+          <Image source={M2kiri} style={{ width: "100%", height: "100%", left: 15 }} resizeMode="contain" />
         </Animated.View>
       )}
 
@@ -288,25 +282,18 @@ const PlaceHolderSSnextFirst = () => {
           {
             transform: [{ translateY: slideCurvedRectangle }],
           },
-        ]}
-      >
+        ]}>
         <View style={styles.textWrapper}>
           {!showThirdImage ? (
             <>
               <Text style={styles.titleTextWater}>Water is the source</Text>
               <Text style={styles.titleTextWater}>of life, but a small</Text>
-              <Text style={styles.titleTextWater}>
-                leak can be a big threat.
-              </Text>
+              <Text style={styles.titleTextWater}>leak can be a big threat.</Text>
             </>
           ) : showSecondImage ? (
             <>
-              <Text style={styles.titleTextElec}>
-                Electrical energy is precious,{" "}
-              </Text>
-              <Text style={styles.titleTextElec}>
-                every watt wasted is lost
-              </Text>
+              <Text style={styles.titleTextElec}>Electrical energy is precious, </Text>
+              <Text style={styles.titleTextElec}>every watt wasted is lost</Text>
               <Text style={styles.titleTextElec}>potential.</Text>
             </>
           ) : (
@@ -321,8 +308,7 @@ const PlaceHolderSSnextFirst = () => {
               <TouchableOpacity
                 style={[styles.button, !secondButtonEnabled && { opacity: 1 }]}
                 onPress={handleNext}
-                disabled={!secondButtonEnabled}
-              >
+                disabled={!secondButtonEnabled}>
                 <Text style={styles.buttonText}>Next</Text>
               </TouchableOpacity>
             </View>
@@ -341,8 +327,7 @@ const PlaceHolderSSnextFirst = () => {
               <TouchableOpacity
                 style={[styles.button, !thirdButtonEnabled && { opacity: 1 }]}
                 onPress={handleNext}
-                disabled={!thirdButtonEnabled}
-              >
+                disabled={!thirdButtonEnabled}>
                 <Text style={styles.buttonText}>Next</Text>
               </TouchableOpacity>
             </View>
@@ -364,10 +349,10 @@ const PlaceHolderSSnextFirst = () => {
             <View style={{ marginBottom: -60 }}>
               <TouchableOpacity
                 style={[styles.button3, !finalButtonEnabled && { opacity: 1 }]}
-                onPress={() => navigation.navigate("LoginScreen")}
+                // onPress={() => navigation.navigate("LoginScreen")}
                 //onPress={() => navigation.navigate("MainMenu")}
-                disabled={!finalButtonEnabled}
-              >
+                onPress={completeOnboarding}
+                disabled={!finalButtonEnabled}>
                 <Text style={styles.buttonText3}>Next</Text>
               </TouchableOpacity>
             </View>
@@ -382,8 +367,7 @@ const PlaceHolderSSnextFirst = () => {
                   height: 12,
                   borderRadius: 6,
                   marginHorizontal: 6,
-                  backgroundColor:
-                    currentStep === step ? "#000" : "transparent",
+                  backgroundColor: currentStep === step ? "#000" : "transparent",
                   borderWidth: 1.5,
                   borderColor: "#000",
                 }}

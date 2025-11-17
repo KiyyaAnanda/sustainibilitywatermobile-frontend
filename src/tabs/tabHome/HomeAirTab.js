@@ -5,10 +5,18 @@
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Dimensions, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Dimensions,
+  FlatList,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
+} from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { postUser } from "../../services/apiService";
-import { Picker } from "@react-native-picker/picker";
+import { postUser, postUserArray } from "../../services/apiService";
 
 // const months = [
 //   "JANUARI",
@@ -328,13 +336,27 @@ import { Picker } from "@react-native-picker/picker";
 // import { postUser } from "../../services/apiService";
 // import { Picker } from "@react-native-picker/picker";
 
-const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "Mei",
+  "Jun",
+  "Jul",
+  "Agu",
+  "Sep",
+  "Okt",
+  "Nov",
+  "Des",
+];
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SIDE_MARGIN = 8;
 const CARD_WIDTH = SCREEN_WIDTH * 0.7;
 const CARD_MARGIN = 10;
 const SNAP_INTERVAL = CARD_WIDTH + CARD_MARGIN * 2;
 const TOTAL_DUPLICATE = 10; // ulangi 10 kali untuk efek loop
+const HARGA_PER_M3 = 6500; // Dummy harga per m³
 
 const CardPerMonth = ({
   month,
@@ -349,7 +371,11 @@ const CardPerMonth = ({
   return (
     <View style={styles.card}>
       {month !== "YTD" && <Text style={styles.header}>{month}</Text>}
-      {ytdText && <Text style={styles.ytdLabel ?? styles.header}>{`${month}. ${ytdText} INDICATOR OVER / LOWER`}</Text>}
+      {ytdText && (
+        <Text
+          style={styles.ytdLabel ?? styles.header}
+        >{`${month}. ${ytdText} INDICATOR OVER / LOWER`}</Text>
+      )}
       <View style={styles.row}>
         <Text style={styles.label}>{t("water_consumption")}</Text>
         <Text>{`${waterConsumption} L`}</Text>
@@ -388,7 +414,9 @@ export default function HomeTabAir() {
   const currentMonthIndex = new Date().getMonth();
   const currentMonthName = months[currentMonthIndex];
 
-  const [monthlyConsumptionData, setMonthlyConsumptionData] = useState(Array(12).fill(0));
+  const [monthlyConsumptionData, setMonthlyConsumptionData] = useState(
+    Array(12).fill(0)
+  );
   const [aktualIndividuData, setAktualIndividuData] = useState([]);
   const [targetData, setTargetData] = useState(Array(12).fill(0));
   const [withdrawalReduction, setWithdrawalReduction] = useState([]);
@@ -396,6 +424,16 @@ export default function HomeTabAir() {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   //SETTING TOTAL YTD
+
+  // Inisialisasi Google Generative AI
+  //  const genAI = new GoogleGenAI(GEMINI_API_KEY);
+  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+  // const client = new OpenAI({
+  //   apiKey: OPENAI_API_KEY,
+  // });
+
+  const [aiRecommendation, setAiRecommendation] = useState("");
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -405,7 +443,9 @@ export default function HomeTabAir() {
         try {
           const [a, b, c, d] = await Promise.all([
             postUser("Dashboard/GetDataChartMonthly", { year: currentYear }),
-            postUserArray("Dashboard/GetDataAktualIndividu", { year: currentYear }),
+            postUserArray("Dashboard/GetDataAktualIndividu", {
+              year: currentYear,
+            }),
             postUser("Dashboard/GetDataTargetIndividu", { year: currentYear }),
             postUser("Dashboard/GetTargetReduction", {}),
           ]);
@@ -416,7 +456,9 @@ export default function HomeTabAir() {
           if (a !== "ERROR") {
             const arr = Array(12).fill(0);
             const parsedA = typeof a === "string" ? JSON.parse(a) : a;
-            parsedA.forEach((item) => (arr[item.Bulan - 1] = item.TotalKonsumsi));
+            parsedA.forEach(
+              (item) => (arr[item.Bulan - 1] = item.TotalKonsumsi)
+            );
             setMonthlyConsumptionData(arr);
           }
 
@@ -426,13 +468,17 @@ export default function HomeTabAir() {
             const parsedC = typeof c === "string" ? JSON.parse(c) : c;
             parsedC.forEach((item) => {
               const bulanIndex = item.bulan - 1;
-              arr[bulanIndex] = parseFloat(item.trg_target_bulanan_individu || 0);
+              arr[bulanIndex] = parseFloat(
+                item.trg_target_bulanan_individu || 0
+              );
             });
             setTargetData(arr);
           }
 
           if (d !== "ERROR" && d[0]) {
-            setTargetReductionValue(parseFloat(d[0].trg_persentase_target_penghematan || 0));
+            setTargetReductionValue(
+              parseFloat(d[0].trg_persentase_target_penghematan || 0)
+            );
           }
 
           const reduksi = Array(12)
@@ -496,7 +542,9 @@ export default function HomeTabAir() {
     // Kembali ke YTD jika idle 10 detik
     if (loopedData[index] !== "YTD") {
       timeoutRef.current = setTimeout(() => {
-        const nearestYTD = loopedData.findIndex((item, i) => item === "YTD" && i >= middleIndex);
+        const nearestYTD = loopedData.findIndex(
+          (item, i) => item === "YTD" && i >= middleIndex
+        );
         if (flatListRef.current && nearestYTD >= 0) {
           flatListRef.current.scrollToIndex({
             index: nearestYTD,
@@ -517,11 +565,15 @@ export default function HomeTabAir() {
 
     // Data default
     const water = isYTD
-      ? monthlyConsumptionData.slice(0, currentMonthIndex + 1).reduce((a, b) => a + b, 0)
+      ? monthlyConsumptionData
+          .slice(0, currentMonthIndex + 1)
+          .reduce((a, b) => a + b, 0)
       : monthlyConsumptionData[dataIndex] || 0;
 
     const aktual = isYTD
-      ? aktualIndividuData.slice(0, currentMonthIndex + 1).reduce((acc, curr) => acc + (curr.TotalKonsumsi || 0), 0)
+      ? aktualIndividuData
+          .slice(0, currentMonthIndex + 1)
+          .reduce((acc, curr) => acc + (curr.TotalKonsumsi || 0), 0)
       : aktualIndividuData[dataIndex]?.TotalKonsumsi || 0;
 
     //DENGAN MEMBUAT
@@ -530,7 +582,10 @@ export default function HomeTabAir() {
       ? targetData.slice(0, currentMonthIndex + 1).reduce((a, b) => a + b, 0)
       : targetData[dataIndex] || 0;
 
-    const ytdReductionArray = withdrawalReduction.slice(0, currentMonthIndex + 1);
+    const ytdReductionArray = withdrawalReduction.slice(
+      0,
+      currentMonthIndex + 1
+    );
     const reduksi = isYTD
       ? ytdReductionArray.reduce((a, b) => a + b, 0) / ytdReductionArray.length
       : withdrawalReduction[dataIndex] || 0;
@@ -638,7 +693,20 @@ export default function HomeTabAir() {
   const [chartLabels, setChartLabels] = useState({
     daily: Array.from({ length: 24 }, (_, i) => `${i}:00`),
     weekly: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
-    monthly: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
+    monthly: [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "Mei",
+      "Jun",
+      "Jul",
+      "Agu",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Des",
+    ],
     yearly: [], // Akan diisi dinamis dari API
   });
 
@@ -700,7 +768,15 @@ export default function HomeTabAir() {
           } else if (filterType === "weekly") {
             const weeklyData = new Array(7).fill(0);
             data.forEach((item) => {
-              const index = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"].indexOf(item.NamaHari);
+              const index = [
+                "Senin",
+                "Selasa",
+                "Rabu",
+                "Kamis",
+                "Jumat",
+                "Sabtu",
+                "Minggu",
+              ].indexOf(item.NamaHari);
               if (index >= 0) weeklyData[index] = item.TotalKonsumsi;
             });
             setChartData(weeklyData);
@@ -729,15 +805,95 @@ export default function HomeTabAir() {
     }, [filterType])
   );
 
+  const getAiRecommendation = useCallback(async () => {
+    // 1. GUARD CLAUSE:
+    const hasMonthlyData = monthlyConsumptionData.some((val) => val > 0);
+    const hasTopData = topKomponenData.length > 0;
+
+    if (!hasMonthlyData || !hasTopData || isAiLoading) {
+      return;
+    }
+
+    setIsAiLoading(true);
+    setAiRecommendation(""); 
+
+    // 2. Format data tabel Top Komponen
+    const dataLaporanTop = topKomponenData
+      .slice(0, 10) 
+      .map(
+        (item, index) =>
+          `${index + 1}. Komponen: ${item.NoKomponen}, Lokasi: ${
+            item.Lokasi
+          }, Total Volume:${item.TotalVolumeAir.toFixed(
+            2
+          )} m³, Tanggal: ${new Date(item.Tanggal).toLocaleDateString("id-ID")}`
+      )
+      .join("\n");
+
+    // 3. Format data bulanan
+    const dataLaporanBulanan = monthlyConsumptionData
+      .map((total, index) => {
+        if (total === 0) return null; 
+        const bulanLalu = index > 0 ? monthlyConsumptionData[index - 1] : 0;
+        const selisih = total - bulanLalu;
+        return `${months[index]}: ${total.toFixed(
+          2
+        )} m³ (Perubahan: ${selisih.toFixed(2)} m³ dari bulan lalu)`;
+      })
+      .filter(Boolean)
+      .join("\n");
+
+    // 4. Buat Prompt
+    const prompt = `
+        Anda adalah asisten ahli analisis data konsumsi air.
+        Data Laporan Konsumsi Bulanan (Total):
+        ${dataLaporanBulanan}
+
+        Data Top 10 Konsumen Teratas (berdasarkan filter: ${filterVolume}):
+        ${dataLaporanTop}
+
+        Tugas:
+        1. Berikan analisis singkat dari data di atas.
+        2. Fokus pada lonjakan terbesar (misal: ${months[new Date().getMonth()]
+          }) dan konsumen teratas (misal: ${topKomponenData[0]?.NoKomponen || "N/A"}).
+        3. Berikan 3-5 langkah rekomendasi praktis untuk mengurangi konsumsi di area tersebut.`;
+
+    try {
+      // 5. Panggil model
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      console.log("Rekomendasi AI Diterima:", response); // Log respons
+      setAiRecommendation(text);
+    } catch (error) {
+      console.error("Error fetching AI recommendation:", error);
+      console.log("Prompt yang gagal:", prompt);
+      setAiRecommendation("Gagal mendapatkan rekomendasi. Silakan coba lagi.");
+    } finally {
+      setIsAiLoading(false);
+    }
+  }, [
+    monthlyConsumptionData,
+    topKomponenData,
+    filterVolume,
+    //isAiLoading DIHAPUS
+    //genAI juga bisa dihapus karena sudah stabil (didefinisikan di luar)
+  ]);
+
+  useEffect(() => {
+    getAiRecommendation();
+  }, [getAiRecommendation]);
+
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
       <View style={styles.container}>
         <Text style={styles.header2}>{t("progress_title")}</Text>
         {/* {isLoading ? (
-          <Text>Loading...</Text>
-        ) : isError ? (
-          <Text>Error fetching data</Text>
-        ) : ( */}
+            <Text>Loading...</Text>
+          ) : isError ? (
+            <Text>Error fetching data</Text>
+          ) : ( */}
         <FlatList
           ref={flatListRef}
           horizontal
@@ -759,15 +915,21 @@ export default function HomeTabAir() {
         />
       </View>
       <View style={styles.graphSection}>
-        <Text style={styles.header2}>{`${t("water_usage_chart")} (${filterType})`}</Text>
+        <Text style={styles.header2}>{`${t(
+          "water_usage_chart"
+        )} (${filterType})`}</Text>
         <View style={styles.dropdownContainer}>
           <Text style={styles.label}>Pilih Tampilan Chart:</Text>
           <View style={styles.buttonRow}>
-            {["yearly", "monthly", "weekly"].map((type) => (
+            {["yearly", "monthly", "weekly", "daily"].map((type) => (
               <Text
                 key={type}
-                style={[styles.filterButton, filterType === type && styles.activeButton]}
-                onPress={() => setFilterType(type)}>
+                style={[
+                  styles.filterButton,
+                  filterType === type && styles.activeButton,
+                ]}
+                onPress={() => setFilterType(type)}
+              >
                 {type}
               </Text>
             ))}
@@ -776,10 +938,10 @@ export default function HomeTabAir() {
         {/* {isLoading ? ( */}
         {/* <ActivityIndicator size="large" color="#007bff" /> */}
         {/* ) : isError ? (
-            <Text style={{ color: "red", marginTop: 10 }}>
-              Gagal memuat data. Silakan coba lagi.
-            </Text>
-          ) : ( */}
+              <Text style={{ color: "red", marginTop: 10 }}>
+                Gagal memuat data. Silakan coba lagi.
+              </Text>
+            ) : ( */}
         <View style={{ flexDirection: "row" }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View>
@@ -810,8 +972,11 @@ export default function HomeTabAir() {
                     backgroundColor: "rgba(0,0,0,0.7)",
                     padding: 6,
                     borderRadius: 6,
-                  }}>
-                  <Text style={{ color: "white", fontSize: 12 }}>{tooltipPos.value} m³</Text>
+                  }}
+                >
+                  <Text style={{ color: "white", fontSize: 12 }}>
+                    {tooltipPos.value} m³
+                  </Text>
                 </View>
               )}
             </View>
@@ -828,9 +993,18 @@ export default function HomeTabAir() {
           {["volume", "lokasi", "tanggal"].map((item) => (
             <TouchableOpacity
               key={item}
-              style={[styles.segmentedButton, filterVolume === item && styles.segmentedButtonActive]}
-              onPress={() => setFilterVolume(item)}>
-              <Text style={[styles.segmentedButtonText, filterVolume === item && styles.segmentedButtonTextActive]}>
+              style={[
+                styles.segmentedButton,
+                filterVolume === item && styles.segmentedButtonActive,
+              ]}
+              onPress={() => setFilterVolume(item)}
+            >
+              <Text
+                style={[
+                  styles.segmentedButtonText,
+                  filterVolume === item && styles.segmentedButtonTextActive,
+                ]}
+              >
                 {item.charAt(0).toUpperCase() + item.slice(1)}
               </Text>
             </TouchableOpacity>
@@ -844,37 +1018,196 @@ export default function HomeTabAir() {
             {/* Header */}
             <View style={stylesTable.tableRowHeader}>
               <Text style={[stylesTable.cellHeader, { width: 50 }]}>No</Text>
-              <Text style={[stylesTable.cellHeader, { width: 120 }]}>No Komponen</Text>
-              <Text style={[stylesTable.cellHeader, { width: 150 }]}>Lokasi</Text>
-              <Text style={[stylesTable.cellHeader, { width: 160 }]}>Total Volume Air</Text>
-              <Text style={[stylesTable.cellHeader, { width: 200 }]}>Tanggal</Text>
+              <Text style={[stylesTable.cellHeader, { width: 120 }]}>
+                No Komponen
+              </Text>
+              <Text style={[stylesTable.cellHeader, { width: 150 }]}>
+                Lokasi
+              </Text>
+              <Text style={[stylesTable.cellHeader, { width: 160 }]}>
+                Total Volume Air
+              </Text>
+              <Text style={[stylesTable.cellHeader, { width: 200 }]}>
+                Tanggal
+              </Text>
+              <Text style={[stylesTable.cellHeader, { width: 150 }]}>
+                Perkiraan Biaya
+              </Text>
             </View>
 
             {/* Body */}
-            {topKomponenData.map((item, index) => (
-              <View key={index} style={stylesTable.tableRow}>
-                <Text style={[stylesTable.cell, { width: 50 }]}>{index + 1}</Text>
-                <Text style={[stylesTable.cell, { width: 120 }]} numberOfLines={1} ellipsizeMode="tail">
-                  {item.NoKomponen}
-                </Text>
-                <Text style={[stylesTable.cell, { width: 150 }]} numberOfLines={1} ellipsizeMode="tail">
-                  {item.Lokasi || "-"}
-                </Text>
-                <Text style={[stylesTable.cell, { width: 160 }]}>{parseFloat(item.TotalVolumeAir).toFixed(2)}</Text>
-                <Text style={[stylesTable.cell, { width: 200 }]} numberOfLines={1} ellipsizeMode="tail">
-                  {new Date(item.Tanggal).toLocaleString("id-ID", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </Text>
-              </View>
-            ))}
+            {/* INI ADALAH BLOK YANG SUDAH DIPERBAIKI DARI LANGKAH 1 */}
+            {topKomponenData.map((item, index) => {
+              const perkiraanBiaya =
+                parseFloat(item.TotalVolumeAir) * HARGA_PER_M3;
+
+              return (
+                <View key={index} style={stylesTable.tableRow}>
+                  <Text style={[stylesTable.cell, { width: 50 }]}>
+                    {index + 1}
+                  </Text>
+                  <Text
+                    style={[stylesTable.cell, { width: 120 }]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {item.NoKomponen}
+                  </Text>
+                  <Text
+                    style={[stylesTable.cell, { width: 150 }]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {item.Lokasi || "-"}
+                  </Text>
+                  <Text style={[stylesTable.cell, { width: 160 }]}>
+                    {parseFloat(item.TotalVolumeAir).toFixed(2)}
+                  </Text>
+                  <Text
+                    style={[stylesTable.cell, { width: 200 }]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {new Date(item.Tanggal).toLocaleString("id-ID", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </Text>
+                  <Text
+                    style={[stylesTable.cell, { width: 150 }]}
+                    numberOfLines={1}
+                  >
+                    {`Rp ${perkiraanBiaya.toLocaleString("id-ID")}`}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         </ScrollView>
       </>
+
+      {/* --- INI ADALAH BLOK TABEL BULANAN BARU ANDA --- */}
+      <View style={styles.container}>
+        <Text style={styles.header2}>
+          {t("Laporan Konsumsi & Biaya Bulanan")}
+        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View>
+            {/* Header Tabel Bulanan */}
+            <View style={stylesTable.tableRowHeader}>
+              <Text style={[stylesTable.cellHeader, { width: 100 }]}>
+                Bulan
+              </Text>
+              <Text style={[stylesTable.cellHeader, { width: 150 }]}>
+                Total Konsumsi (m³)
+              </Text>
+              <Text style={[stylesTable.cellHeader, { width: 170 }]}>
+                Perkiraan Biaya
+              </Text>
+              <Text style={[stylesTable.cellHeader, { width: 170 }]}>
+                Perbandingan Volume
+              </Text>
+              <Text style={[stylesTable.cellHeader, { width: 170 }]}>
+                Perbandingan Biaya
+              </Text>
+            </View>
+
+            {/* Body Tabel Bulanan */}
+            {monthlyConsumptionData.map((totalKonsumsi, index) => {
+              // Hanya tampilkan jika ada data
+              if (totalKonsumsi === 0 && index > currentMonthIndex) {
+                return null;
+              }
+
+              const biaya = totalKonsumsi * HARGA_PER_M3;
+              const konsumsiBulanLalu =
+                index > 0 ? monthlyConsumptionData[index - 1] : 0;
+              const biayaBulanLalu = konsumsiBulanLalu * HARGA_PER_M3;
+
+              const perbandinganVolume = totalKonsumsi - konsumsiBulanLalu;
+              const perbandinganBiaya = biaya - biayaBulanLalu;
+
+              // Tentukan warna
+              const isNaik = perbandinganVolume > 0;
+              const colorStyle = isNaik ? { color: "red" } : { color: "green" };
+
+              return (
+                <View key={index} style={stylesTable.tableRow}>
+                  <Text style={[stylesTable.cell, { width: 100 }]}>
+                    {months[index]}
+                  </Text>
+                  <Text style={[stylesTable.cell, { width: 150 }]}>
+                    {totalKonsumsi.toFixed(2)}
+                  </Text>
+                  <Text
+                    style={[stylesTable.cell, { width: 170 }]}
+                  >{`Rp ${biaya.toLocaleString("id-ID")}`}</Text>
+                  <Text
+                    style={[
+                      stylesTable.cell,
+                      { width: 170 },
+                      perbandinganVolume !== 0 && colorStyle,
+                    ]}
+                  >
+                    {perbandinganVolume === 0 || index === 0
+                      ? "-"
+                      : `${isNaik ? "+" : ""}${perbandinganVolume.toFixed(2)}`}
+                  </Text>
+                  <Text
+                    style={[
+                      stylesTable.cell,
+                      { width: 170 },
+                      perbandinganBiaya !== 0 && colorStyle,
+                    ]}
+                  >
+                    {perbandinganBiaya === 0 || index === 0
+                      ? "-"
+                      : `Rp ${
+                          isNaik ? "+" : ""
+                        }${perbandinganBiaya.toLocaleString("id-ID")}`}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </ScrollView>
+      </View>
+      {/* --- AKHIR BLOK TABEL BULANAN --- */}
+
+      {/* --- BLOK AI REKOMENDASI (OTOMATIS) --- */}
+      <View style={styles.container}>
+        <Text style={styles.header2}>Rekomendasi AI</Text>
+
+        {/* Tampilkan loading indicator */}
+        {isAiLoading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#007bff" />
+            <Text style={styles.loadingText}>
+              Sedang memproses rekomendasi...
+            </Text>
+          </View>
+        )}
+
+        {/* Tampilkan hasil jika sudah selesai loading DAN ada isinya */}
+        {!isAiLoading && aiRecommendation && (
+          <View style={styles.aiResultContainer}>
+            <Text style={styles.aiResultText}>{aiRecommendation}</Text>
+          </View>
+        )}
+
+        {/* Tampilkan pesan ini jika tidak loading DAN tidak ada hasil (misal data belum siap) */}
+        {!isAiLoading && !aiRecommendation && (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>
+              Rekomendasi akan muncul di sini setelah data dimuat.
+            </Text>
+          </View>
+        )}
+      </View>
+      {/* --- AKHIR BLOK AI REKOMENDASI --- */}
     </ScrollView>
   );
 }
@@ -1029,6 +1362,37 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     fontSize: 1,
   },
+  // ... styles.chart ...
+  chart: {
+    borderRadius: 12,
+    fontSize: 1,
+  },
+  // --- PINDAHKAN STYLE DARI STYLES TABLE KE SINI ---
+  aiResultContainer: {
+    backgroundColor: "#e9f7ff", // Biru muda
+    borderLeftWidth: 5,
+    borderLeftColor: "#007bff",
+    padding: 15,
+    marginTop: 10,
+    borderRadius: 5,
+  },
+  aiResultText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#333",
+  },
+  // --- TAMBAHKAN STYLE INI UNTUK LOADING ---
+  loadingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+    minHeight: 100,
+  },
+  loadingText: {
+    marginTop: 10,
+    color: "#666",
+    fontStyle: "italic",
+  },
 });
 
 const stylesTable = StyleSheet.create({
@@ -1038,17 +1402,20 @@ const stylesTable = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: "#aaa",
   },
+
   tableRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
   },
+
   cellHeader: {
     fontWeight: "bold",
     padding: 8,
     textAlign: "center",
     backgroundColor: "#eaeaea",
   },
+
   cell: {
     padding: 8,
     textAlign: "center",

@@ -23,7 +23,7 @@ import FormLayoutHistory from "../../../components/FormLayoutHistory";
 
 // Styles and API
 import { stylesB, stylesDetail } from "../../../styles/globalStyles";
-import { postUser } from "../../../services/apiService";
+import { postUser, postUserArray } from "../../../services/apiService";
 import { formatDateOnly } from "../../../Util/Formatting";
 
 const LokasiSensorDetail = () => {
@@ -57,7 +57,7 @@ const LokasiSensorDetail = () => {
       const fetchData = async () => {
         setIsError({ error: false, message: "" });
         try {
-          const data = await postUser("MasterLokasi/DetailLokasi", { id });
+          const data = await postUserArray("MasterLokasi/DetailLokasi", { id });
 
           if (!data || data === "ERROR" || data.length === 0) {
             throw new Error("Gagal mengambil data target.");
@@ -74,7 +74,7 @@ const LokasiSensorDetail = () => {
       const fetchDataKomponenByLokasi = async () => {
         setIsError({ error: false, message: "" });
         try {
-          const data = await postUser("MasterLokasi/GetDataKomponenByLokasi", {
+          const data = await postUserArray("MasterLokasi/GetDataKomponenByLokasi", {
             id,
           });
           console.log("Data Komponen Lokasi:", data);
@@ -108,7 +108,7 @@ const LokasiSensorDetail = () => {
         {
           text: "Ya",
           onPress: () => {
-            postUser("MasterLokasi/SetStatusLokasi", { id }).then((data) => {
+            postUserArray("MasterLokasi/SetStatusLokasi", { id }).then((data) => {
               if (data === "ERROR" || data.length === 0) {
                 Alert.alert("Gagal", "Data gagal mengubah status.", [
                   { text: "OK", onPress: () => navigation.goBack() },
@@ -159,12 +159,13 @@ const LokasiSensorDetail = () => {
       <FormLayout
         source={require("../../../assets/picturePng/mVR1.png")}
         image={{
-          width: 650,
+          width: 600,
           height: 450,
           position: "absolute",
           top: 50,
           left: -100,
           zIndex: 0,
+          alignItems: "center"
         }}
         upperLabel={
           <Text
@@ -172,7 +173,6 @@ const LokasiSensorDetail = () => {
               position: "absolute",
               top: 63,
               bottom: 90,
-              width: 100,
               width: 100,
               alignSelf: "center",
               fontSize: 24,
@@ -183,7 +183,17 @@ const LokasiSensorDetail = () => {
             {t("location_details")}
           </Text>
         }
-        lowerLabel={t("location_introduction")}
+        lowerLabel={<Text
+        style={{
+          alignSelf: "center",
+          width: "85%", 
+          color: "#FFF",
+          margin: 25, 
+          fontSize: 14,
+        }}
+    >
+      {t("location_introduction")}
+    </Text>}
         enableScroll={true}
       >
         <View style={stylesDetail.formContainer}>
@@ -266,7 +276,7 @@ const LokasiSensorDetail = () => {
             />
           </View>
 
-          <View style={{ marginTop: 32 }}>
+          <View style={{ marginTop: 32, marginLeft: 2 }}>
             <Text style={stylesAir.sectionTitle}>
               {"🧩 " + t("location_sensor_details")}
             </Text>

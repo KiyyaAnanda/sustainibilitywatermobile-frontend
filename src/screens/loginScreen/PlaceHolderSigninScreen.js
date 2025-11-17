@@ -381,7 +381,10 @@ const styles = StyleSheet.create({
   //   paddingBottom: 340,
   // },
   curvedRectangle: {
-    height: height * 0.72, // ✅ gunakan flex, bukan height fix
+   height: Platform.select({
+      ios: height * 0.72,
+      android: height * 0.75, 
+    }),
     width: width,
     backgroundColor: "#fff",
     borderTopLeftRadius: 60,
@@ -400,7 +403,11 @@ const styles = StyleSheet.create({
   },
   form: {
     flex: 1,
-    marginTop: 60,
+    // marginTop: 60,
+    marginTop: Platform.select({
+      ios: 60,
+      android: 40,
+    }),
     backgroundColor: "#fff",
     borderTopLeftRadius: 55,
     borderTopRightRadius: 55,

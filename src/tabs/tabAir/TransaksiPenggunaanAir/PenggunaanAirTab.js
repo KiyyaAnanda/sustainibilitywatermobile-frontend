@@ -9,7 +9,7 @@ import styles from "../../../styles/globalStyles"; // atau sesuaikan
 import PenggunaanAirPng from "../../../assets/picturePng/PenggunaanAir.png";
 import SensorList from "../../../components/SensorList";
 import InfoCard from "../../../components/InfoCard";
-import { postUser } from "../../../services/apiService";
+import { postUser, postUserArray } from "../../../services/apiService";
 import Paging from "../../../components/Paging";
 import { formatDateOnly } from "../../../Util/Formatting";
 
@@ -47,7 +47,7 @@ const PenggunaanAirTab = ({ searchQuery }) => {
             "Memuat data penggunaan air dengan parameter:",
             searchParams
           );
-          const data = await postUser(
+          const data = await postUserArray(
             "TransaksiPenggunaanAir/GetDataPenggunaanAir",
             {
               page: searchParams.page,
@@ -55,7 +55,7 @@ const PenggunaanAirTab = ({ searchQuery }) => {
               sort: searchParams.sort,
             }
           ); // kirim body kosong
-          setDataPenggunaanAir(data);
+          setDataPenggunaanAir(Array.isArray(data) ? data : []);
         } catch (error) {
           console.error("Gagal mengambil data:", error);
         }

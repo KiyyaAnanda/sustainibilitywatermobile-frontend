@@ -1,23 +1,13 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import { useTranslation } from "react-i18next";
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  ScrollView,
-  Platform,
-  Alert,
-} from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { LinearGradient } from "expo-linear-gradient";
-import Icon from "react-native-vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
-import { postUser, API_URL } from "../../services/apiService"; // Pastikan path ini sesuai dengan struktur project kamu
+import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Alert, Image, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import Icon from "react-native-vector-icons/MaterialIcons";
+import { API_URL, postUser, postUserArray } from "../../services/apiService"; // Pastikan path ini sesuai dengan struktur project kamu
 import { formatTanggalLahir } from "../../Util/Formatting"; // Pastikan path ini sesuai dengan struktur project kamu
 
 const EditProfileScreen = ({ navigation }) => {
@@ -61,7 +51,8 @@ const EditProfileScreen = ({ navigation }) => {
 
       const loadUserProfile = async () => {
         try {
-          const data = await postUser("MasterProfile/GetDataProfile", {
+          console.log("Username dan role:  " + user.username + " - " + user.role);
+          const data = await postUserArray("MasterProfile/GetDataProfile", {
             username: user.username,
             role: user.role,
           });
@@ -86,11 +77,15 @@ const EditProfileScreen = ({ navigation }) => {
       return;
     }
     try {
+      const tanggalLahir = userProfile.usc_tanggallahir.toISOString
+        ? userProfile.usc_tanggallahir.toISOString().split("T")[0] // Date object
+        : userProfile.usc_tanggallahir.split("T")[0]; // string ISO
+
       const payload = {
         usc_id: userProfile.usc_id,
         usc_nama: userProfile.usc_nama,
         usc_foto: userProfile.usc_foto,
-        usc_tanggallahir: userProfile.usc_tanggallahir,
+        usc_tanggallahir: tanggalLahir,
         usc_email: userProfile.usc_email,
         usc_modif_by: user.username,
       };
@@ -114,9 +109,7 @@ const EditProfileScreen = ({ navigation }) => {
       }
 
       if (parsed[0]?.Status === "SUCCESS") {
-        Alert.alert("Sukses", "Data Profil berhasil diubah", [
-          { text: "OK", onPress: () => navigation.goBack() },
-        ]);
+        Alert.alert("Sukses", "Data Profil berhasil diubah", [{ text: "OK", onPress: () => navigation.goBack() }]);
       } else {
         Alert.alert("Gagal", parsed[0]?.Status || "Gagal mengupdate data");
       }
@@ -225,18 +218,13 @@ const EditProfileScreen = ({ navigation }) => {
   if (!userProfile) {
     return (
       <View style={styles.container}>
-        <Text style={{ color: "#fff", marginTop: 100, textAlign: "center" }}>
-          Memuat profil...
-        </Text>
+        <Text style={{ color: "#fff", marginTop: 100, textAlign: "center" }}>Memuat profil...</Text>
       </View>
     );
   } else {
     return (
       <LinearGradient colors={["#0973FF", "#054599"]} style={styles.container}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color="#FFFFFF" />
           <Text style={styles.backText}>{t("back")}</Text>
         </TouchableOpacity>
@@ -292,9 +280,7 @@ const EditProfileScreen = ({ navigation }) => {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>{t("birth_date_profile")}</Text>
             <TouchableOpacity onPress={showDatePicker} style={styles.input}>
-              <Text style={{ color: "#000" }}>
-                {formatTanggalLahir(userProfile.usc_tanggallahir)}
-              </Text>
+              <Text style={{ color: "#000" }}>{formatTanggalLahir(userProfile.usc_tanggallahir)}</Text>
             </TouchableOpacity>
 
             <DateTimePickerModal
@@ -309,9 +295,7 @@ const EditProfileScreen = ({ navigation }) => {
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>{t("positon_profile")}</Text>
-            <Text style={styles.positionText}>
-              {userProfile.usc_departemen}
-            </Text>
+            <Text style={styles.positionText}>{userProfile.usc_departemen}</Text>
           </View>
 
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>

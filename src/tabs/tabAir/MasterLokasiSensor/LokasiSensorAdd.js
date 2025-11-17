@@ -7,7 +7,7 @@ import * as yup from "yup";
 import FormLayout from "../../../components/FormLayout";
 import Input from "../../../components/Input";
 import Button from "../../../components/Button";
-import { postUser } from "../../../services/apiService";
+import { postUser, postUserArray } from "../../../services/apiService";
 // Gaya global
 import { stylesB } from "../../../styles/globalStyles";
 import { validateAllInputs } from "../../../Util/ValdiationForm";
@@ -73,7 +73,7 @@ const LokasiSensorAdd = () => {
       console.log("User dari session:", user);
       try {
         // Cek apakah lokasi (gedung + lantai) sudah ada
-       const checkResult = await postUser("MasterLokasi/CheckLokasi", {
+       const checkResult = await postUserArray("MasterLokasi/CheckLokasi", {
           namaGedung: formData.namaGedung,
           lantai: formData.lantai,
         });
@@ -97,7 +97,7 @@ const LokasiSensorAdd = () => {
           createBy: user.usc_nama,
         };
         // Kirim data ke API
-        const result = await postUser("MasterLokasi/CreateLokasi", dataToSend);
+        const result = await postUserArray("MasterLokasi/CreateLokasi", dataToSend);
         console.log("Result API:", result);
 
         if (Array.isArray(result) && result[0]?.hasil === "OK") {

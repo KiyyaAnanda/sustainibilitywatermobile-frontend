@@ -7,15 +7,17 @@ import InfoCard from "../../../components/InfoCard";
 import SensorList from "../../../components/SensorList";
 import LokasiSensorPng from "../../../assets/picturePng/LokasiSensor.png";
 import styles from "../../../styles/globalStyles";
-import { postUser } from "../../../services/apiService";
+import { postUser, postUserArray } from "../../../services/apiService";
 import Paging from "../../../components/Paging";
 import SensorListItem from "../../../components/SensorListItem";
+import isEqual from "lodash/isEqual";
 
 const LokasiSensorTab = ({ searchQuery }) => {
   const navigation = useNavigation();
   const [dataLokasi, setDataLokasi] = useState([]);
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
+  const [lastParams, setLastParams] = useState(null);
 
   useEffect(() => {
     console.log("KomponenAirTab sensor " + searchQuery.query);
@@ -32,7 +34,7 @@ const LokasiSensorTab = ({ searchQuery }) => {
     status: searchQuery.status,
   });
 
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState([]);
 
   useEffect(() => {
     setSearchParams((prev) => ({
@@ -46,25 +48,44 @@ const LokasiSensorTab = ({ searchQuery }) => {
 
   useFocusEffect(
     useCallback(() => {
-      const loadUser = async () => {
-        try {
-          setLoading(true);
-          const data = await postUser("MasterLokasi/GetDataLokasi", {
-            page: searchParams.page,
-            query: searchParams.query,
-            sort: searchParams.sort,
-            status: searchParams.status,
-          }); // kirim body kosong
-          setDataLokasi(Array.isArray(data) ? data : []); // fallback to [] kalau bukan array
-        } catch (error) {
-          console.error("Gagal mengambil data:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
+    //   const loadUser = async () => {
+    //     try {
+    //       setLoading(true);
+    //       const data = await postUserArray("MasterLokasi/GetDataLokasi", {
+    //         page: searchParams.page,
+    //         query: searchParams.query,
+    //         sort: searchParams.sort,
+    //         status: searchParams.status,
+    //       }); // kirim body kosong
+    //       setDataLokasi(Array.isArray(data) ? data : []); // fallback to [] kalau bukan array
+    //     } catch (error) {
+    //       console.error("Gagal mengambil data:", error);
+    //     } finally {
+    //       setLoading(false);
+    //     }
+    //   };
 
-      loadUser();
-    }, [searchParams])
+    //   loadUser();
+    // }, [searchParams])
+    const loadUser = async () => {
+      if (isEqual(searchParams, lastParams)) {
+        return;
+      }
+
+      setLastParams(searchParams);
+      setLoading(true);
+      try {
+        const data = await postUserArray("MasterLokasi/GetDataLokasi", { ...searchParams });
+        setDataLokasi(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUser();
+  }, [searchParams])
   );
 
   function handleSetCurrentPage(newCurrentPage) {
