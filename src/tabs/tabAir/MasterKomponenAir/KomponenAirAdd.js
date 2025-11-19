@@ -293,7 +293,7 @@ const KomponenAirAdd = () => {
           }}
           textStyle={{ color: "#fff", fontWeight: "bold" }}
         />
-      </View>
+      </View> 
 
       {/* Modal MapPicker */}
       <MapPickerModal

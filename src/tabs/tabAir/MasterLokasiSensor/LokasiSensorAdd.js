@@ -1,17 +1,19 @@
-import { useState, useEffect } from "react";
-import LottieView from "lottie-react-native";
-import { useTranslation } from "react-i18next";
-import { View, Text, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import LottieView from "lottie-react-native";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Alert, Text, View } from "react-native";
 import * as yup from "yup";
+import Button from "../../../components/Button";
 import FormLayout from "../../../components/FormLayout";
 import Input from "../../../components/Input";
-import Button from "../../../components/Button";
 import { postUser, postUserArray } from "../../../services/apiService";
 // Gaya global
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { GestureHandlerRootView, ScrollView } from "react-native-gesture-handler";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { stylesB } from "../../../styles/globalStyles";
 import { validateAllInputs } from "../../../Util/ValdiationForm";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Skema validasi Yup (tidak validasi jumlahHulu karena tidak diinput)
 
@@ -57,11 +59,7 @@ const LokasiSensorAdd = () => {
       lantai: formData.lantai,
       jumlahHilir: formData.jumlahHilir,
     };
-    const validationErrors = await validateAllInputs(
-      dataToValidate,
-      userSchema,
-      setErrors
-    );
+    const validationErrors = await validateAllInputs(dataToValidate, userSchema, setErrors);
 
     if (Object.values(validationErrors).every((error) => !error)) {
       setIsError({ error: false, message: "" });
@@ -73,20 +71,20 @@ const LokasiSensorAdd = () => {
       console.log("User dari session:", user);
       try {
         // Cek apakah lokasi (gedung + lantai) sudah ada
-       const checkResult = await postUserArray("MasterLokasi/CheckLokasi", {
+        const checkResult = await postUserArray("MasterLokasi/CheckLokasi", {
           namaGedung: formData.namaGedung,
           lantai: formData.lantai,
         });
 
-      const hasil = checkResult?.[0]?.hasil;
+        const hasil = checkResult?.[0]?.hasil;
 
-      if (hasil === "EXACT_MATCH") {
-        Alert.alert("Peringatan", "Nama gedung tidak boleh sama!");
-        return; 
-      } else if (hasil === "PARTIAL_MATCH") {
-        Alert.alert("Peringatan", "Nama gedung sudah ada!");
-        return;
-      }
+        if (hasil === "EXACT_MATCH") {
+          Alert.alert("Peringatan", "Nama gedung tidak boleh sama!");
+          return;
+        } else if (hasil === "PARTIAL_MATCH") {
+          Alert.alert("Peringatan", "Nama gedung sudah ada!");
+          return;
+        }
 
         // Validasi data sebelum kirim
         await userSchema.validate(formData, { abortEarly: false });
@@ -101,9 +99,7 @@ const LokasiSensorAdd = () => {
         console.log("Result API:", result);
 
         if (Array.isArray(result) && result[0]?.hasil === "OK") {
-          Alert.alert("Sukses", "Data berhasil disimpan", [
-            { text: "OK", onPress: () => navigation.goBack() },
-          ]);
+          Alert.alert("Sukses", "Data berhasil disimpan", [{ text: "OK", onPress: () => navigation.goBack() }]);
         } else {
           Alert.alert("Gagal", "Gagal menyimpan data.");
         }
@@ -118,44 +114,44 @@ const LokasiSensorAdd = () => {
 
   if (isLoading) {
     return (
-      <View
-        style={[{ flex: 1, justifyContent: "center", alignItems: "center" }]}
-      >
+      <View style={[{ flex: 1, justifyContent: "center", alignItems: "center" }]}>
         <LottieView
           source={require("../../../assets/lottieAnimation/CuteBoyRunning_Loading.json")}
           autoPlay
           loop
           style={{ width: 150, height: 150 }}
         />
-        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>
-          {t("loading")}
-        </Text>
+        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>{t("loading")}</Text>
       </View>
     );
   }
   return (
-    <FormLayout source={require("../../../assets/picturePng/LokasiSensor.png")}>
-      <View style={stylesB.formContainer}>
-        <Text style={stylesB.title}>{t("location_sensor")}</Text>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <FormLayout source={require("../../../assets/picturePng/LokasiSensor.png")}>
+        <View style={stylesB.formContainer}>
+          <Text style={stylesB.title}>{t("location_sensor")}</Text>
 
-        <Input
-          label={t("location_building_name")}
-          value={formData.namaGedung}
-          onChangeText={(text) => handleInputChange("namaGedung", text)}
-          errorMessage={errors.namaGedung}
-        />
+          <ScrollView fadingEdgeLength={10} style={{ paddingVertical: 10 }}>
+            <Input
+              label={t("location_building_name")}
+              value={formData.namaGedung}
+              onChangeText={(text) => handleInputChange("namaGedung", text)}
+              errorMessage={errors.namaGedung}
+            />
 
-        <Input
-          label={t("location_floor")}
-          value={formData.lantai}
-          onChangeText={(text) => handleInputChange("lantai", text)}
-          errorMessage={errors.lantai}
-        />
+            <Input
+              label={t("location_floor")}
+              value={formData.lantai}
+              onChangeText={(text) => handleInputChange("lantai", text)}
+              errorMessage={errors.lantai}
+            />
+          </ScrollView>
 
-        {/* Jumlah Hulu tidak ditampilkan karena disembunyikan dari tampilan */}
-      </View>
+          {/* Jumlah Hulu tidak ditampilkan karena disembunyikan dari tampilan */}
+        </View>
+      </FormLayout>
 
-      <View style={stylesB.buttonGroup}>
+      <View style={styles.buttonGroup}>
         <Button
           label={t("cancel")}
           onPress={() => navigation.goBack()}
@@ -190,8 +186,18 @@ const LokasiSensorAdd = () => {
           textStyle={{ color: "#fff", fontWeight: "bold" }}
         />
       </View>
-    </FormLayout>
+    </GestureHandlerRootView>
   );
+};
+
+const styles = {
+  buttonGroup: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 16,
+    backgroundColor: "#fff",
+    marginBottom: 30,
+  },
 };
 
 export default LokasiSensorAdd;
