@@ -12,9 +12,10 @@ import {
   ScrollView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import Icon from "react-native-vector-icons/MaterialIcons";
 import i18n from "../../i18n"; // pastikan path ini benar sesuai project kamu
 
-const { height } = Dimensions.get("window");
+const { height, width } = Dimensions.get("window");
 
 const LanguageScreen = ({ navigation }) => {
   const { t } = useTranslation();
@@ -54,12 +55,20 @@ const LanguageScreen = ({ navigation }) => {
       <StatusBar barStyle="light-content" />
 
       {/* Back button */}
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
         activeOpacity={0.8}
       >
         <Text style={styles.backButtonText}>{t("back")}</Text>
+      </TouchableOpacity>*/}
+
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
+        <Icon name="arrow-back" size={24} color="#FFFFFF" />
+        <Text style={styles.backText}>{t("back")}</Text>
       </TouchableOpacity>
 
       {/* Header */}
@@ -80,7 +89,10 @@ const LanguageScreen = ({ navigation }) => {
               activeOpacity={0.9}
               onPress={() => handleLanguageChange(lang.code)}
             >
-              <LinearGradient colors={lang.gradient} style={styles.cardBackground}>
+              <LinearGradient
+                colors={lang.gradient}
+                style={styles.cardBackground}
+              >
                 <View style={styles.cardContent}>
                   <Image source={lang.flag} style={styles.flag} />
                   <Text style={styles.languageText}>{lang.name}</Text>
@@ -99,7 +111,8 @@ const LanguageScreen = ({ navigation }) => {
       {/* Current Language Info */}
       <View style={styles.languageIndicator}>
         <Text style={styles.languageIndicatorText}>
-          {t("current_language")}: {languages.find((l) => l.code === selectedLanguage)?.name}
+          {t("current_language")}:{" "}
+          {languages.find((l) => l.code === selectedLanguage)?.name}
         </Text>
       </View>
     </LinearGradient>
@@ -112,22 +125,34 @@ const styles = StyleSheet.create({
     paddingTop: height * 0.06,
     paddingHorizontal: 20,
   },
+  // backButton: {
+  //   alignSelf: "flex-start",
+  //   paddingHorizontal: 16,
+  //   paddingVertical: 8,
+  //   backgroundColor: "rgba(255,255,255,0.2)",
+  //   borderRadius: 20,
+  //   marginBottom: 15,
+  // },
+  // backButtonText: {
+  //   color: "#fff",
+  //   fontSize: 14,
+  //   fontWeight: "500",
+  // },
   backButton: {
-    alignSelf: "flex-start",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderRadius: 20,
-    marginBottom: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    // marginBottom: 20,
   },
-  backButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "500",
+  backText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: "#FFFFFF",
+    fontWeight: "600",
   },
   header: {
     alignItems: "center",
     marginBottom: 30,
+    marginTop: 20.
   },
   title: {
     fontSize: 26,
@@ -190,6 +215,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: "rgba(255,255,255,0.15)",
     borderRadius: 15,
+    marginBottom: height * 0.05,
   },
   languageIndicatorText: {
     color: "#fff",

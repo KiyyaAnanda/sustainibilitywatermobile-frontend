@@ -1,29 +1,34 @@
-import React, { useState, useRef } from "react";
+import { useNavigation } from "@react-navigation/native";
 import LottieView from "lottie-react-native";
+import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert } from "react-native";
 import {
-  View,
+  Alert,
+  Dimensions,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  Image,
-  StyleSheet,
-  Keyboard,
   TouchableWithoutFeedback,
-  Platform,
-  KeyboardAvoidingView,
-  ScrollView
+  View,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import DropDown from "../../../components/DropDown";
-import Input from "../../../components/Input";
-import Button from "../../../components/Button";
-import DropDownForm from "../../../components/DropDownForm";
-import FormLayout from "../../../components/FormLayout";
-import { stylesB } from "../../../styles/globalStyles";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import * as yup from "yup";
 import { validateAllInputs, validateInput } from "../../../Util/ValdiationForm";
+import Button from "../../../components/Button";
+import DropDown from "../../../components/DropDown";
+import DropDownForm from "../../../components/DropDownForm";
+import FormContainerWithBlur from "../../../components/FormContainerWithBlur";
+import FormLayout from "../../../components/FormLayout";
+import Input from "../../../components/Input";
 import { postUser, postUserArray } from "../../../services/apiService";
+import { stylesB } from "../../../styles/globalStyles";
+
+const { height } = Dimensions.get("window");
 
 const EvaluasiTargetAdd = () => {
   const navigation = useNavigation();
@@ -60,9 +65,10 @@ const EvaluasiTargetAdd = () => {
 
   const [years] = useState(() => {
     const currentYear = new Date().getFullYear();
-    return Array.from({ length: 11 }, (_, index) => currentYear + index).map(
-      (year) => ({ Value: year.toString(), Text: year.toString() })
-    );
+    return Array.from({ length: 11 }, (_, index) => currentYear + index).map((year) => ({
+      Value: year.toString(),
+      Text: year.toString(),
+    }));
   });
 
   const userSchema = yup.object().shape({
@@ -70,46 +76,28 @@ const EvaluasiTargetAdd = () => {
       .string()
       .required("Harus diisi")
       .matches(/^\d+$/, "Harus berupa angka")
-      .test(
-        "maxValue",
-        "Jumlah individu tidak boleh lebih dari 100.000",
-        (value) => value <= 100000
-      ),
+      .test("maxValue", "Jumlah individu tidak boleh lebih dari 100.000", (value) => value <= 100000),
 
     targetBulananIndividu: yup
       .string()
       .required("Harus diisi")
       .matches(/^\d+$/, "Harus berupa angka")
-      .test(
-        "maxValue",
-        "Target bulanan individu tidak boleh lebih dari 100",
-        (value) => value <= 100
-      ),
+      .test("maxValue", "Target bulanan individu tidak boleh lebih dari 100", (value) => value <= 100),
 
     persentaseTargetPenghematan: yup
       .string()
       .required("Harus diisi")
       .matches(/^\d+$/, "Harus berupa angka")
-      .test(
-        "maxValue",
-        "Persentase target penghematan tidak boleh lebih dari 100",
-        (value) => value <= 100
-      ),
+      .test("maxValue", "Persentase target penghematan tidak boleh lebih dari 100", (value) => value <= 100),
 
     bulan: yup.string().required("Harus dipilih"),
     tahun: yup.string().required("Harus dipilih"),
-    tanggalMulaiBerlaku: yup
-      .string()
-      .required("Tanggal mulai berlaku harus diisi"),
+    tanggalMulaiBerlaku: yup.string().required("Tanggal mulai berlaku harus diisi"),
   });
 
   const handleInputChange = async (name, value) => {
     if (["jumlahIndividu"].includes(name) && value.length > 6) return;
-    if (
-      ["targetBulananIndividu", "persentaseTargetPenghematan"].includes(name) &&
-      value.length > 3
-    )
-      return;
+    if (["targetBulananIndividu", "persentaseTargetPenghematan"].includes(name) && value.length > 3) return;
 
     const numericValue = value.replace(/\D/g, "");
     formDataRef.current[name] = numericValue;
@@ -126,11 +114,7 @@ const EvaluasiTargetAdd = () => {
     formDataRef.current.tahun = tahun;
     formDataRef.current.tanggalMulaiBerlaku = `${tahun}-${bulan}-01`;
 
-    const validationErrors = await validateAllInputs(
-      formDataRef.current,
-      userSchema,
-      setErrors
-    );
+    const validationErrors = await validateAllInputs(formDataRef.current, userSchema, setErrors);
     if (Object.values(validationErrors).every((err) => !err)) {
       setIsLoading(true);
       try {
@@ -138,10 +122,7 @@ const EvaluasiTargetAdd = () => {
         delete dataToSend.bulan;
         delete dataToSend.tahun;
 
-        const data = await postUserArray(
-          "MasterEvaluasiTarget/CreateEvaluasiTarget",
-          dataToSend
-        );
+        const data = await postUserArray("MasterEvaluasiTarget/CreateEvaluasiTarget", dataToSend);
 
         if (data === "ERROR") {
           throw new Error("Gagal menyimpan data target.");
@@ -163,100 +144,89 @@ const EvaluasiTargetAdd = () => {
 
   if (isLoading) {
     return (
-      <View
-        style={[{ flex: 1, justifyContent: "center", alignItems: "center" }]}
-      >
+      <View style={[{ flex: 1, justifyContent: "center", alignItems: "center" }]}>
         <LottieView
           source={require("../../../assets/lottieAnimation/CuteBoyRunning_Loading.json")}
           autoPlay
           loop
           style={{ width: 150, height: 150 }}
         />
-        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>
-          {t("loading")}
-        </Text>
+        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>{t("loading")}</Text>
       </View>
     );
   }
 
   return (
-    <FormLayout
-      source={require("../../../assets/picturePng/EvaluasiTarget.png")}
-    >
-      <ScrollView contentContainerStyle={stylesB.trformContainer}>
-      <View style={stylesB.formContainer}>
-        <Text style={stylesB.title}>{t("add_evaluation_target")}</Text>
+    <GestureHandlerRootView>
+      <FormLayout
+        source={require("../../../assets/picturePng/EvaluasiTarget.png")}
+        // enableScroll={true}
+      >
+        <FormContainerWithBlur
+          containerStyle={stylesB.formContainer}
+          maxHeight={600}
+          showTopBlur={true}
+          showBottomBlur={true}
+          blurHeight={10}>
+          <Text style={stylesB.title}>{t("add_evaluation_target")}</Text>
+          <Input
+            label={t("number_of_individuals")}
+            keyboardType="numeric"
+            value={formDataRef.current.jumlahIndividu}
+            onChangeText={(text) => handleInputChange("jumlahIndividu", text)}
+            errorMessage={errors.jumlahIndividu}
+          />
+          <Input
+            label={t("montyly_target_individuals")}
+            keyboardType="numeric"
+            value={formDataRef.current.targetBulananIndividu}
+            onChangeText={(text) => handleInputChange("targetBulananIndividu", text)}
+            errorMessage={errors.targetBulananIndividu}
+          />
+          <DropDownForm
+            label={t("month_evaluation")}
+            arrData={months}
+            selectedValue={bulan}
+            onValueChange={async (value) => {
+              setBulan(value);
+              const validationError = await validateInput("bulan", value, userSchema);
+              setErrors((prev) => ({
+                ...prev,
+                bulan: validationError.error,
+              }));
+            }}
+            isRequired={true}
+            type="pilih"
+            errorMessage={errors.bulan}
+          />
+          <DropDownForm
+            label={t("year_evaluation")}
+            arrData={years}
+            selectedValue={tahun}
+            onValueChange={async (value) => {
+              setTahun(value);
+              const validationError = await validateInput("tahun", value, userSchema);
+              setErrors((prev) => ({
+                ...prev,
+                tahun: validationError.error,
+              }));
+            }}
+            isRequired={true}
+            type="select"
+            errorMessage={errors.tahun}
+          />
 
-        <Input
-          label={t("number_of_individuals")}
-          keyboardType="numeric"
-          value={formDataRef.current.jumlahIndividu}
-          onChangeText={(text) => handleInputChange("jumlahIndividu", text)}
-          errorMessage={errors.jumlahIndividu}
-        />
+          <Input
+            label={t("persentage_of_savings_target")}
+            keyboardType="numeric"
+            value={formDataRef.current.persentaseTargetPenghematan}
+            onChangeText={(text) => handleInputChange("persentaseTargetPenghematan", text)}
+            errorMessage={errors.persentaseTargetPenghematan}
+          />
+        </FormContainerWithBlur>
+      </FormLayout>
 
-        <Input
-          label={t("montyly_target_individuals")}
-          keyboardType="numeric"
-          value={formDataRef.current.targetBulananIndividu}
-          onChangeText={(text) =>
-            handleInputChange("targetBulananIndividu", text)
-          }
-          errorMessage={errors.targetBulananIndividu}
-        />
-        <DropDownForm
-          label={t("month_evaluation")}
-          arrData={months}
-          selectedValue={bulan}
-          onValueChange={async (value) => {
-            setBulan(value);
-            const validationError = await validateInput(
-              "bulan",
-              value,
-              userSchema
-            );
-            setErrors((prev) => ({
-              ...prev,
-              bulan: validationError.error,
-            }));
-          }}
-          isRequired={true}
-          type="pilih"
-          errorMessage={errors.bulan}
-        />
-
-        <DropDownForm
-          label={t("year_evaluation")}
-          arrData={years}
-          selectedValue={tahun}
-          onValueChange={async (value) => {
-            setTahun(value);
-            const validationError = await validateInput(
-              "tahun",
-              value,
-              userSchema
-            );
-            setErrors((prev) => ({
-              ...prev,
-              tahun: validationError.error,
-            }));
-          }}
-          isRequired={true}
-          type="select"
-          errorMessage={errors.tahun}
-        />
-
-        <Input
-          label={t("persentage_of_savings_target")}
-          keyboardType="numeric"
-          value={formDataRef.current.persentaseTargetPenghematan}
-          onChangeText={(text) =>
-            handleInputChange("persentaseTargetPenghematan", text)
-          }
-          errorMessage={errors.persentaseTargetPenghematan}
-        />
-      </View>
-      <View style={stylesB.buttonGroup}>
+      <View style={styles.buttonGroup}>
         <Button
           label={t("cancel")}
           onPress={() => navigation.goBack()}
@@ -301,9 +271,18 @@ const EvaluasiTargetAdd = () => {
           textStyle={{ color: "#fff", fontWeight: "bold" }}
         />
       </View>
-      </ScrollView>
-    </FormLayout>
+    </GestureHandlerRootView>
   );
+};
+
+const styles = {
+  buttonGroup: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 16,
+    backgroundColor: "#fff",
+    marginBottom: height * 0.05,
+  },
 };
 
 export default EvaluasiTargetAdd;
