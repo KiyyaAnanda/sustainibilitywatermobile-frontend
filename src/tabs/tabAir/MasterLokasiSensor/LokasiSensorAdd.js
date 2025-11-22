@@ -2,9 +2,10 @@ import { useNavigation } from "@react-navigation/native";
 import LottieView from "lottie-react-native";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Text, View } from "react-native";
+import { Alert, Dimensions, Text, View } from "react-native";
 import * as yup from "yup";
 import Button from "../../../components/Button";
+import FormContainerWithBlur from "../../../components/FormContainerWithBlur";
 import FormLayout from "../../../components/FormLayout";
 import Input from "../../../components/Input";
 import { postUser, postUserArray } from "../../../services/apiService";
@@ -14,6 +15,8 @@ import { GestureHandlerRootView, ScrollView } from "react-native-gesture-handler
 import { SafeAreaView } from "react-native-safe-area-context";
 import { stylesB } from "../../../styles/globalStyles";
 import { validateAllInputs } from "../../../Util/ValdiationForm";
+
+const { height } = Dimensions.get("window");
 
 // Skema validasi Yup (tidak validasi jumlahHulu karena tidak diinput)
 
@@ -128,27 +131,30 @@ const LokasiSensorAdd = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <FormLayout source={require("../../../assets/picturePng/LokasiSensor.png")}>
-        <View style={stylesB.formContainer}>
+        <FormContainerWithBlur
+          containerStyle={stylesB.formContainer}
+          maxHeight={500}
+          showTopBlur={false}
+          showBottomBlur={true}
+          blurHeight={10}>
           <Text style={stylesB.title}>{t("location_sensor")}</Text>
 
-          <ScrollView fadingEdgeLength={10} style={{ paddingVertical: 10 }}>
-            <Input
-              label={t("location_building_name")}
-              value={formData.namaGedung}
-              onChangeText={(text) => handleInputChange("namaGedung", text)}
-              errorMessage={errors.namaGedung}
-            />
+          <Input
+            label={t("location_building_name")}
+            value={formData.namaGedung}
+            onChangeText={(text) => handleInputChange("namaGedung", text)}
+            errorMessage={errors.namaGedung}
+          />
 
-            <Input
-              label={t("location_floor")}
-              value={formData.lantai}
-              onChangeText={(text) => handleInputChange("lantai", text)}
-              errorMessage={errors.lantai}
-            />
-          </ScrollView>
+          <Input
+            label={t("location_floor")}
+            value={formData.lantai}
+            onChangeText={(text) => handleInputChange("lantai", text)}
+            errorMessage={errors.lantai}
+          />
 
           {/* Jumlah Hulu tidak ditampilkan karena disembunyikan dari tampilan */}
-        </View>
+        </FormContainerWithBlur>
       </FormLayout>
 
       <View style={styles.buttonGroup}>
@@ -196,7 +202,7 @@ const styles = {
     justifyContent: "space-between",
     padding: 16,
     backgroundColor: "#fff",
-    marginBottom: 30,
+    marginBottom: height * 0.05,
   },
 };
 

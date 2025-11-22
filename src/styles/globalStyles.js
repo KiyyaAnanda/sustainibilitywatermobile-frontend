@@ -99,15 +99,15 @@ export const stylesB = StyleSheet.create({
     borderTopRightRadius: 32,
     padding: 24,
     marginTop: 10,
-    height: 820,
+    minHeight: 820,
   },
   formContainer: {
     backgroundColor: "#fff",
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
-    padding: 24,
+    padding: 0,
     marginTop: 10,
-    height: 560,
+    flex: 1,
   },
   title: {
     fontSize: 20,
@@ -154,7 +154,7 @@ export const stylesDetail = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-     paddingHorizontal: 28, // ganti marginLeft jadi padding biar proporsional
-  paddingTop: 35, // ganti marginTop biar lebih fleksibel
+    paddingHorizontal: 28, // ganti marginLeft jadi padding biar proporsional
+    paddingTop: 35, // ganti marginTop biar lebih fleksibel
   },
 });

@@ -1,19 +1,23 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, Alert, ScrollView } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
+import LottieView from "lottie-react-native";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Alert, Dimensions, ScrollView, Text, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import MapView, { Marker } from "react-native-maps";
 import * as yup from "yup";
+import Button from "../../../components/Button";
+import DropDownForm from "../../../components/DropDownForm";
+import FormContainerWithBlur from "../../../components/FormContainerWithBlur";
 import FormLayout from "../../../components/FormLayout";
 import Input from "../../../components/Input";
-import DropDownForm from "../../../components/DropDownForm";
-import Button from "../../../components/Button";
-import { stylesB } from "../../../styles/globalStyles";
-import { postUser, postUserArray } from "../../../services/apiService";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import MapView, { Marker } from "react-native-maps";
 import MapPickerModal from "../../../components/Maps";
-import { validateInput, validateAllInputs } from "../../../Util/ValdiationForm";
-import LottieView from "lottie-react-native";
+import { postUser, postUserArray } from "../../../services/apiService";
+import { stylesB } from "../../../styles/globalStyles";
+import { validateAllInputs, validateInput } from "../../../Util/ValdiationForm";
+
+const { height } = Dimensions.get("window");
 
 //buat konstanta
 const KomponenAirAdd = () => {
@@ -58,8 +62,7 @@ const KomponenAirAdd = () => {
     const fetchData = async () => {
       try {
         const result = await postUserArray("MasterLokasi/GetListLokasi", {});
-        if (!Array.isArray(result))
-          throw new Error("Format data lokasi tidak sesuai");
+        if (!Array.isArray(result)) throw new Error("Format data lokasi tidak sesuai");
         const list = result.map((item) => ({
           label: item.Text || "Tidak ada label",
           value: item.Value || "Tidak ada value",
@@ -118,10 +121,7 @@ const KomponenAirAdd = () => {
       setErrors({});
 
       if (!locations) {
-        Alert.alert(
-          "Error",
-          "Lokasi belum tersedia. Silakan pilih lokasi terlebih dahulu."
-        );
+        Alert.alert("Error", "Lokasi belum tersedia. Silakan pilih lokasi terlebih dahulu.");
         return;
       }
 
@@ -139,16 +139,11 @@ const KomponenAirAdd = () => {
       };
 
       setIsLoading(true);
-      const res = await postUserArray(
-        "MasterKomponenAir/CreateKomponenAirMobile",
-        dataToSend
-      );
+      const res = await postUserArray("MasterKomponenAir/CreateKomponenAirMobile", dataToSend);
 
       if (res === "ERROR") throw new Error("Gagal menyimpan data target.");
 
-      Alert.alert("Sukses", "Data Sensor berhasil disimpan", [
-        { text: "OK", onPress: () => navigation.goBack() },
-      ]);
+      Alert.alert("Sukses", "Data Sensor berhasil disimpan", [{ text: "OK", onPress: () => navigation.goBack() }]);
     } catch (err) {
       if (err.name === "ValidationError") {
         const newErrors = {};
@@ -166,146 +161,159 @@ const KomponenAirAdd = () => {
 
   if (isLoading) {
     return (
-      <View
-        style={[{ flex: 1, justifyContent: "center", alignItems: "center" }]}
-      >
+      <View style={[{ flex: 1, justifyContent: "center", alignItems: "center" }]}>
         <LottieView
           source={require("../../../assets/lottieAnimation/CuteBoyRunning_Loading.json")}
           autoPlay
           loop
           style={{ width: 150, height: 150 }}
         />
-        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>
-          {t("loading")}
-        </Text>
+        <Text style={{ color: "#fff", marginTop: 16, fontSize: 16 }}>{t("loading")}</Text>
       </View>
     );
   }
 
   //form
   return (
-    <FormLayout
-      source={require("../../../assets/picturePng/KomponenAir.png")}
-      enableScroll={true}
-    >
-      <ScrollView contentContainerStyle={stylesB.trformContainer}>
-        <Text style={stylesB.title}>{t("sensor_water")}</Text>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <FormLayout source={require("../../../assets/picturePng/KomponenAir.png")} enableScroll={true}>
+        <FormContainerWithBlur
+          containerStyle={stylesB.formContainer}
+          maxHeight={500}
+          showTopBlur={true}
+          showBottomBlur={true}
+          blurHeight={10}>
+          <Text style={stylesB.title}>{t("sensor_water")}</Text>
 
-        <DropDownForm
-          label={t("location_sensor_water")}
-          arrData={LocationList}
-          selectedValue={location}
-          onValueChange={handleLocationChange}
-          isRequired
-          type="pilih lokasi"
-          errorMessage={errors.lokasi}
-        />
-        <Input
-          label={t("position_sensor_water")}
-          value={position}
-          onChangeText={() => {}}
-          editable={false}
-          errorMessage={errors.posisi}
-        />
+          <DropDownForm
+            label={t("location_sensor_water")}
+            arrData={LocationList}
+            selectedValue={location}
+            onValueChange={handleLocationChange}
+            isRequired
+            type="pilih lokasi"
+            errorMessage={errors.lokasi}
+          />
+          <Input
+            label={t("position_sensor_water")}
+            value={position}
+            onChangeText={() => {}}
+            editable={false}
+            errorMessage={errors.posisi}
+          />
 
-        <Input
-          label={t("condition_sensor_water")}
-          value={kondisiKeterangan}
-          onChangeText={handleKondisiChange}
-          multiline
-          numberOfLines={4}
-          errorMessage={errors.kondisiKeterangan}
-        />
+          <Input
+            label={t("condition_sensor_water")}
+            value={kondisiKeterangan}
+            onChangeText={handleKondisiChange}
+            multiline
+            numberOfLines={4}
+            errorMessage={errors.kondisiKeterangan}
+          />
 
-        {locations ? (
-          <MapView
-            style={{ height: 200, marginTop: 16, borderRadius: 10 }}
-            initialRegion={{
-              latitude: locations.latitude || -6.3485,
-              longitude: locations.longitude || 107.1484,
-              latitudeDelta: 0.005,
-              longitudeDelta: 0.005,
-            }}
-            scrollEnabled={false}
-            zoomEnabled={false}
-          >
-            <Marker coordinate={locations} title="Lokasi Terpilih" />
-          </MapView>
-        ) : (
-          <View
+          {locations ? (
+            <MapView
+              style={{ height: 200, marginTop: 16, borderRadius: 10 }}
+              initialRegion={{
+                latitude: locations.latitude || -6.3485,
+                longitude: locations.longitude || 107.1484,
+                latitudeDelta: 0.005,
+                longitudeDelta: 0.005,
+              }}
+              scrollEnabled={false}
+              zoomEnabled={false}>
+              <Marker coordinate={locations} title="Lokasi Terpilih" />
+            </MapView>
+          ) : (
+            <View
+              style={{
+                height: 200,
+                borderRadius: 10,
+                backgroundColor: "#f0f0f0",
+                justifyContent: "center",
+                alignItems: "center",
+                marginTop: 16,
+              }}>
+              <Text style={{ color: "#888" }}>{t("map_not_available")}</Text>
+            </View>
+          )}
+          <Button
+            label={t("choose_location_maps")}
+            onPress={() => setShowMap(true)} // ⬅️ ganti dengan buka modal
             style={{
-              height: 200,
-              borderRadius: 10,
-              backgroundColor: "#f0f0f0",
-              justifyContent: "center",
-              alignItems: "center",
+              backgroundColor: "#0973FF",
+              borderRadius: 20,
+              paddingVertical: 12,
               marginTop: 16,
             }}
-          >
-            <Text style={{ color: "#888" }}>{t("map_not_available")}</Text>
-          </View>
-        )}
+            textStyle={{
+              color: "#FFFFFF",
+              fontWeight: "bold",
+              textAlign: "center",
+            }}
+          />
+        </FormContainerWithBlur>
+        {/* <ScrollView contentContainerStyle={stylesB.trformContainer}>
 
-        <Button
-          label={t("choose_location_maps")}
-          onPress={() => setShowMap(true)} // ⬅️ ganti dengan buka modal
-          style={{
-            backgroundColor: "#0973FF",
-            borderRadius: 20,
-            paddingVertical: 12,
-            marginTop: 16,
-          }}
-          textStyle={{
-            color: "#FFFFFF",
-            fontWeight: "bold",
-            textAlign: "center",
+      </ScrollView> */}
+        {/* Modal MapPicker */}
+        <MapPickerModal
+          visible={showMap}
+          onClose={() => setShowMap(false)}
+          onSelect={(lokasi) => {
+            setLocations(lokasi); // set latlong
+            setShowMap(false);
           }}
         />
-      </ScrollView>
+      </FormLayout>
 
-      <View style={stylesB.buttonGroup}>
+      <View style={styles.buttonGroup}>
         <Button
           label={t("cancel")}
           onPress={() => navigation.goBack()}
           classType="success"
           style={{
-            backgroundColor: "#fff",
-            borderWidth: 1,
-            borderColor: "#0973FF",
-            borderRadius: 20,
+            paddingVertical: 12,
+            paddingHorizontal: 24,
+            alignItems: "center",
             flex: 1,
             marginHorizontal: 4,
-            paddingVertical: 12,
+            backgroundColor: "#fff",
+            borderRadius: 20,
+            borderWidth: 1,
+            borderColor: "#0973FF",
           }}
           textStyle={{ color: "#0973FF", fontWeight: "bold" }}
         />
+
         <Button
           label={t("save")}
           onPress={handleSave}
           classType="success"
-          isLoading={isLoading}
           style={{
-            backgroundColor: "#0973FF",
+            paddingVertical: 12,
+            paddingHorizontal: 24,
             borderRadius: 20,
+            alignItems: "center",
             flex: 1,
             marginHorizontal: 4,
-            paddingVertical: 12,
+            backgroundColor: "#0973FF",
           }}
           textStyle={{ color: "#fff", fontWeight: "bold" }}
         />
-      </View> 
-
-      {/* Modal MapPicker */}
-      <MapPickerModal
-        visible={showMap}
-        onClose={() => setShowMap(false)}
-        onSelect={(lokasi) => {
-          setLocations(lokasi); // set latlong
-          setShowMap(false);
-        }}
-      />
-    </FormLayout>
+      </View>
+    </GestureHandlerRootView>
   );
+};
+
+const styles = {
+  buttonGroup: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 16,
+    backgroundColor: "#fff",
+    marginBottom: height * 0.05,
+  },
 };
 
 export default KomponenAirAdd;
