@@ -28,14 +28,14 @@ const apiClient = axios.create({
   },
 });
 
-const apiClientLokal = axios.create({
-  baseURL: API_URL_LOKAL,
-  timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  },
-});
+// const apiClientLokal = axios.create({
+//   baseURL: API_URL_LOKAL,
+//   timeout: 10000,
+//   headers: {
+//     "Content-Type": "application/json",
+//     Accept: "application/json",
+//   },
+// });
 
 export const postUser = async (param, body = {}) => {
   try {
@@ -91,40 +91,40 @@ export const postUserArray = async (param, body = {}) => {
   }
 };
 
-export const postUserArrayLokal = async (param, body = {}) => {
-  try {
-    const response = await apiClient.post(`api/${param}`, body);
-    let data = response.data;
+// export const postUserArrayLokal = async (param, body = {}) => {
+//   try {
+//     const response = await apiClient.post(`api/${param}`, body);
+//     let data = response.data;
 
-    if (typeof data === "string") {
-      try {
-        data = JSON.parse(data);
-        console.log("✅ API success:", data);
-      } catch (parseError) {
-        console.error("Error parsing data:", parseError);
-        return "ERROR";
-      }
-    }
+//     if (typeof data === "string") {
+//       try {
+//         data = JSON.parse(data);
+//         console.log("✅ API success:", data);
+//       } catch (parseError) {
+//         console.error("Error parsing data:", parseError);
+//         return "ERROR";
+//       }
+//     }
 
-    if (data === null || data === undefined) {
-      return [];
-    }
+//     if (data === null || data === undefined) {
+//       return [];
+//     }
 
-    if (Array.isArray(data)) {
-      return data;
-    }
+//     if (Array.isArray(data)) {
+//       return data;
+//     }
 
-    if (typeof data === "object") {
-      return [data];
-    }
+//     if (typeof data === "object") {
+//       return [data];
+//     }
 
-    console.error("❌ API response is not an array:", data);
-    return "ERROR";
-  } catch (error) {
-    console.error("❌ API call failed:", error.message);
-    if (error.response) {
-      console.error("Response:", error.response.data);
-    }
-    return "ERROR";
-  }
-};
+//     console.error("❌ API response is not an array:", data);
+//     return "ERROR";
+//   } catch (error) {
+//     console.error("❌ API call failed:", error.message);
+//     if (error.response) {
+//       console.error("Response:", error.response.data);
+//     }
+//     return "ERROR";
+//   }
+// };

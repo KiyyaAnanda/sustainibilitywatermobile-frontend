@@ -1,7 +1,3 @@
-// import React, { useState, useEffect, useRef } from "react";
-// import { View, Text, FlatList, Dimensions, StyleSheet } from "react-native";
-// import { postUser } from "../../services/apiService";
-
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -14,13 +10,15 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  Modal,
+  Pressable,
 } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { postUser, postUserArray, postUserArray } from "../../services/apiService";
-//import { GoogleGenAI } from "@google/genai";
+import { postUser, postUserArray } from "../../services/apiService";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-//import OpenAI from "openai";
 import { GEMINI_API_KEY } from "@env";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
 const months = [
   "Jan",
@@ -41,8 +39,8 @@ const SIDE_MARGIN = 8;
 const CARD_WIDTH = SCREEN_WIDTH * 0.7;
 const CARD_MARGIN = 10;
 const SNAP_INTERVAL = CARD_WIDTH + CARD_MARGIN * 2;
-const TOTAL_DUPLICATE = 10; // ulangi 10 kali untuk efek loop
-const HARGA_PER_M3 = 6500; // Dummy harga per m³
+const TOTAL_DUPLICATE = 10;
+const HARGA_PER_M3 = 6500;
 
 const CardPerMonth = ({
   month,
@@ -50,17 +48,15 @@ const CardPerMonth = ({
   waterConsumption,
   konsumsiIndividu,
   targetIndividu,
-  withdrawalAktual,
-  withdrawalTarget,
 }) => {
   const { t } = useTranslation();
   return (
     <View style={styles.card}>
       {month !== "YTD" && <Text style={styles.header}>{month}</Text>}
       {ytdText && (
-        <Text
-          style={styles.ytdLabel ?? styles.header}
-        >{`${month}. ${ytdText} INDICATOR OVER / LOWER`}</Text>
+        <Text style={styles.ytdLabel ?? styles.header}>
+          {`${month}. ${ytdText} INDICATOR OVER / LOWER`}
+        </Text>
       )}
       <View style={styles.row}>
         <Text style={styles.label}>{t("water_consumption")}</Text>
@@ -74,20 +70,32 @@ const CardPerMonth = ({
         <Text style={styles.label}>{t("wc_target")}</Text>
         <Text>{`${targetIndividu} m³`}</Text>
       </View>
-      {/* <View style={styles.row}>
-        <Text style={styles.label}>{t("reduction_aktual")}</Text>
-        <Text>{`${withdrawalAktual}%`}</Text>
-      </View>
-      <View style={styles.row}>
-        <Text style={styles.label}>{t("reduction_target")}</Text>
-        <Text>{`-${withdrawalTarget}%`}</Text>
-      </View> */}
     </View>
   );
 };
 
 export default function HomeTabAir() {
   const { t } = useTranslation();
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedComparison, setSelectedComparison] = useState(null);
+
+  // detail kalau di hold
+  const handleShowDetail = (currMonth, prevMonth, currVal, prevVal, type) => {
+    const diff = currVal - prevVal;
+    if (!prevMonth) return;
+
+    setSelectedComparison({
+      currMonth,
+      prevMonth,
+      currVal,
+      prevVal,
+      diff,
+      type,
+    });
+    setModalVisible(true);
+  };
+
   const dataWithYTD = [...months, "YTD"];
   const loopedData = Array(TOTAL_DUPLICATE).fill(dataWithYTD).flat();
   const middleIndex = Math.floor(loopedData.length / 2);
@@ -109,14 +117,8 @@ export default function HomeTabAir() {
   const [targetReductionValue, setTargetReductionValue] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
-  //SETTING TOTAL YTD
 
-  // Inisialisasi Google Generative AI
-  //  const genAI = new GoogleGenAI(GEMINI_API_KEY);
   const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-  // const client = new OpenAI({
-  //   apiKey: OPENAI_API_KEY,
-  // });
 
   const [aiRecommendation, setAiRecommendation] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -128,14 +130,17 @@ export default function HomeTabAir() {
         setIsError(false);
         try {
           const [a, b, c, d] = await Promise.all([
-            postUserArray("Dashboard/GetDataChartMonthly", { year: currentYear }),
-            postUserArray("Dashboard/GetDataAktualIndividu", {year: currentYear,}),
-            postUserArray("Dashboard/GetDataTargetIndividu", { year: currentYear }),
+            postUserArray("Dashboard/GetDataChartMonthly", {
+              year: currentYear,
+            }),
+            postUserArray("Dashboard/GetDataAktualIndividu", {
+              year: currentYear,
+            }),
+            postUserArray("Dashboard/GetDataTargetIndividu", {
+              year: currentYear,
+            }),
             postUserArray("Dashboard/GetTargetReduction", {}),
           ]);
-
-          // console.log("Type of c:", typeof c);
-          // console.log("Is array:", Array.isArray(c));
 
           if (a !== "ERROR") {
             const arr = Array(12).fill(0);
@@ -185,6 +190,7 @@ export default function HomeTabAir() {
       fetchAll();
     }, [])
   );
+
   useEffect(() => {
     if (flatListRef.current) {
       setTimeout(() => {
@@ -197,18 +203,11 @@ export default function HomeTabAir() {
     }
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
-
   const handleScrollEnd = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(offsetX / SNAP_INTERVAL);
     setActiveIndex(index);
 
-    // reset ke tengah jika dekat ujung
     const edgeThreshold = dataWithYTD.length;
     if (index <= edgeThreshold || index >= loopedData.length - edgeThreshold) {
       if (flatListRef.current) {
@@ -220,10 +219,8 @@ export default function HomeTabAir() {
       }
     }
 
-    // Reset timer jika sebelumnya sudah ada
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-    // Kembali ke YTD jika idle 10 detik
     if (loopedData[index] !== "YTD") {
       timeoutRef.current = setTimeout(() => {
         const nearestYTD = loopedData.findIndex(
@@ -242,12 +239,9 @@ export default function HomeTabAir() {
 
   const renderItem = ({ item, index }) => {
     const isYTD = item === "YTD";
-
-    // Index untuk data per bulan
     const originalIndex = dataWithYTD.indexOf(item);
     const dataIndex = isYTD ? currentMonthIndex : originalIndex;
 
-    // Data default
     const water = isYTD
       ? monthlyConsumptionData
           .slice(0, currentMonthIndex + 1)
@@ -260,19 +254,9 @@ export default function HomeTabAir() {
           .reduce((acc, curr) => acc + (curr.TotalKonsumsi || 0), 0)
       : aktualIndividuData[dataIndex]?.TotalKonsumsi || 0;
 
-    //DENGAN MEMBUAT
-    // console.log("targetData: ", targetData);
     const target = isYTD
       ? targetData.slice(0, currentMonthIndex + 1).reduce((a, b) => a + b, 0)
       : targetData[dataIndex] || 0;
-
-    const ytdReductionArray = withdrawalReduction.slice(
-      0,
-      currentMonthIndex + 1
-    );
-    const reduksi = isYTD
-      ? ytdReductionArray.reduce((a, b) => a + b, 0) / ytdReductionArray.length
-      : withdrawalReduction[dataIndex] || 0;
 
     return (
       <View style={{ width: CARD_WIDTH, marginHorizontal: CARD_MARGIN }}>
@@ -282,16 +266,27 @@ export default function HomeTabAir() {
           waterConsumption={parseFloat(water).toFixed(2)}
           konsumsiIndividu={parseFloat(aktual).toFixed(2)}
           targetIndividu={parseFloat(target).toFixed(2)}
-          // withdrawalAktual={parseFloat(reduksi).toFixed(2)}
-          // withdrawalTarget={targetReductionValue}
         />
       </View>
     );
   };
 
-  // export default function HomeTabAir() {
   const [filterType, setFilterType] = useState("yearly");
   const [chartData, setChartData] = useState(new Array(12).fill(0));
+  const [chartLabels, setChartLabels] = useState({
+    daily: Array.from({ length: 24 }, (_, i) => `${i}:00`),
+    weekly: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
+    monthly: months,
+    yearly: [],
+  });
+  const [tooltipPos, setTooltipPos] = useState({
+    x: 0,
+    y: 0,
+    visible: false,
+    value: 0,
+  });
+  const [filterVolume, setFilterVolume] = useState("volume");
+  const [topKomponenData, setTopKomponenData] = useState([]);
 
   const chartConfig = {
     backgroundGradientFrom: "#ffffff",
@@ -299,145 +294,65 @@ export default function HomeTabAir() {
     decimalPlaces: 2,
     color: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`,
     labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-    propsForDots: {
-      r: "5",
-      strokeWidth: "2",
-      stroke: "#1E90FF",
-    },
+    propsForDots: { r: "5", strokeWidth: "2", stroke: "#1E90FF" },
   };
-
-  // const chartLabels = {
-  //   daily: Array.from({ length: 24 }, (_, i) => `${i + 1}`),
-  //   weekly: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
-  //   monthly: months,
-  //   yearly: ["2025"],
-  // };
-
-  const [tooltipPos, setTooltipPos] = useState({
-    x: 0,
-    y: 0,
-    visible: false,
-    value: 0,
-  });
-
-  const [filterVolume, setFilterVolume] = useState("volume");
-  //const [isLoading, setIsLoading] = useState(true);
-  //const [isError, setIsError] = useState(false);
-  const [topKomponenData, setTopKomponenData] = useState([]);
-  //const currentYear = new Date().getFullYear();
 
   useFocusEffect(
     useCallback(() => {
       const fetchTopData = async () => {
         setIsLoading(true);
-        // setIsError(false);
         try {
           let endpoint = "";
-          let data;
-          if (filterVolume === "volume") {
-            endpoint = "Dashboard/GetTopKomponen";
-          } else if (filterVolume === "lokasi") {
+          if (filterVolume === "volume") endpoint = "Dashboard/GetTopKomponen";
+          else if (filterVolume === "lokasi")
             endpoint = "Dashboard/GetTopLokasi";
-          } else if (filterVolume === "tanggal") {
+          else if (filterVolume === "tanggal")
             endpoint = "Dashboard/GetTopTanggal";
-          }
 
-          const response = await postUser(`${endpoint}`, {
-            year: currentYear,
-          });
-
-          console.log("Type of response:", typeof response);
-          console.log("Is array:", Array.isArray(response));
-
-          if (response === "ERROR") {
-            setIsError(true);
-          } else {
-            if (typeof response === "string") {
-              try {
-                data = JSON.parse(response);
-              } catch (parseError) {
-                console.error("Error parsing data:", parseError);
-                setIsError(true);
-                return;
-              }
-            } else data = response;
+          const response = await postUser(`${endpoint}`, { year: currentYear });
+          let data;
+          if (response !== "ERROR") {
+            data =
+              typeof response === "string" ? JSON.parse(response) : response;
             setTopKomponenData(data);
+          } else {
+            setIsError(true);
           }
         } catch (error) {
           setIsError(true);
-          console.error("Error fetching data:", error);
         } finally {
           setIsLoading(false);
         }
       };
-
       fetchTopData();
     }, [filterVolume])
   );
-  const [chartLabels, setChartLabels] = useState({
-    daily: Array.from({ length: 24 }, (_, i) => `${i}:00`),
-    weekly: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
-    monthly: [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "Mei",
-      "Jun",
-      "Jul",
-      "Agu",
-      "Sep",
-      "Okt",
-      "Nov",
-      "Des",
-    ],
-    yearly: [], // Akan diisi dinamis dari API
-  });
 
   useFocusEffect(
     useCallback(() => {
       const fetchChartData = async () => {
         setIsLoading(true);
-        // setIsError(false);
         try {
           let endpoint = "";
-          console.log("filter type : ", filterType);
-          if (filterType === "daily") {
-            endpoint = "Dashboard/GetDataChartDaily";
-          } else if (filterType === "weekly") {
+          if (filterType === "daily") endpoint = "Dashboard/GetDataChartDaily";
+          else if (filterType === "weekly")
             endpoint = "Dashboard/GetDataChartWeekly";
-          } else if (filterType === "monthly") {
+          else if (filterType === "monthly")
             endpoint = "Dashboard/GetDataChartMonthly";
-          } else if (filterType === "yearly") {
+          else if (filterType === "yearly")
             endpoint = "Dashboard/GetDataChartYearly";
-          }
 
           const response = await postUser(endpoint, { year: currentYear });
           let data;
-          // logging untuk liat tipe data.
-          console.log("Data grafik: ", response);
-          console.log("Filter Type:", filterType);
-          console.log("Is Array:", Array.isArray(response));
-          console.log("Type of Data:", typeof response);
-
-          // parsing jika data merupakan JSON bukan array
           if (typeof response === "string") {
             try {
               data = JSON.parse(response);
-            } catch (parseError) {
-              console.error("Error parsing data:", parseError);
-              setIsError(true);
+            } catch (e) {
               return;
             }
           } else data = response;
 
-          if (response === "ERROR") {
-            setIsError(true);
-            return;
-          }
-
-          if (!Array.isArray(data)) {
-            console.error("Data is not an array after parsing:", data);
+          if (response === "ERROR" || !Array.isArray(data)) {
             setIsError(true);
             return;
           }
@@ -452,7 +367,7 @@ export default function HomeTabAir() {
           } else if (filterType === "weekly") {
             const weeklyData = new Array(7).fill(0);
             data.forEach((item) => {
-              const index = [
+              const idx = [
                 "Senin",
                 "Selasa",
                 "Rabu",
@@ -461,7 +376,7 @@ export default function HomeTabAir() {
                 "Sabtu",
                 "Minggu",
               ].indexOf(item.NamaHari);
-              if (index >= 0) weeklyData[index] = item.TotalKonsumsi;
+              if (idx >= 0) weeklyData[idx] = item.TotalKonsumsi;
             });
             setChartData(weeklyData);
           } else if (filterType === "monthly") {
@@ -473,37 +388,56 @@ export default function HomeTabAir() {
           } else if (filterType === "yearly") {
             const yearlyLabels = data.map((item) => item.Tahun.toString());
             const yearlyData = data.map((item) => item.TotalKonsumsi);
-
             setChartLabels((prev) => ({ ...prev, yearly: yearlyLabels }));
             setChartData(yearlyData);
           }
         } catch (error) {
-          console.error("Chart Fetch Error:", error);
           setIsError(true);
         } finally {
           setIsLoading(false);
         }
       };
-
       fetchChartData();
     }, [filterType])
   );
 
   const getAiRecommendation = useCallback(async () => {
-    // 1. GUARD CLAUSE:
     const hasMonthlyData = monthlyConsumptionData.some((val) => val > 0);
     const hasTopData = topKomponenData.length > 0;
 
-    if (!hasMonthlyData || !hasTopData || isAiLoading) {
-      return;
+    if (!hasMonthlyData || !hasTopData || isAiLoading) return;
+
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, "0");
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const year = now.getFullYear();
+    const todayDateStr = `${day}-${month}-${year}`;
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const STORAGE_KEY_DATE = "ai_last_run_date";
+    const STORAGE_KEY_DATA = "ai_cached_data";
+
+    try {
+      const cachedData = await AsyncStorage.getItem(STORAGE_KEY_DATA);
+      if (cachedData) setAiRecommendation(cachedData);
+      const lastRunDate = await AsyncStorage.getItem(STORAGE_KEY_DATE);
+      const TARGET_HOUR = 7;
+      const TARGET_MINUTE = 30;
+      const isTooEarly =
+        currentHour < TARGET_HOUR ||
+        (currentHour === TARGET_HOUR && currentMinute < TARGET_MINUTE);
+
+      if (isTooEarly) return;
+      if (lastRunDate === todayDateStr && cachedData) return;
+    } catch (e) {
+      console.error(e);
     }
 
     setIsAiLoading(true);
-    setAiRecommendation(""); 
+    setAiRecommendation("");
 
-    // 2. Format data tabel Top Komponen
     const dataLaporanTop = topKomponenData
-      .slice(0, 10) 
+      .slice(0, 10)
       .map(
         (item, index) =>
           `${index + 1}. Komponen: ${item.NoKomponen}, Lokasi: ${
@@ -514,10 +448,9 @@ export default function HomeTabAir() {
       )
       .join("\n");
 
-    // 3. Format data bulanan
     const dataLaporanBulanan = monthlyConsumptionData
       .map((total, index) => {
-        if (total === 0) return null; 
+        if (total === 0) return null;
         const bulanLalu = index > 0 ? monthlyConsumptionData[index - 1] : 0;
         const selisih = total - bulanLalu;
         return `${months[index]}: ${total.toFixed(
@@ -527,43 +460,23 @@ export default function HomeTabAir() {
       .filter(Boolean)
       .join("\n");
 
-    // 4. Buat Prompt
-    const prompt = `
-        Anda adalah asisten ahli analisis data konsumsi air.
-        Data Laporan Konsumsi Bulanan (Total):
-        ${dataLaporanBulanan}
-
-        Data Top 10 Konsumen Teratas (berdasarkan filter: ${filterVolume}):
-        ${dataLaporanTop}
-
-        Tugas:
-        1. Berikan analisis singkat dari data di atas.
-        2. Fokus pada lonjakan terbesar (misal: ${months[new Date().getMonth()]
-          }) dan konsumen teratas (misal: ${topKomponenData[0]?.NoKomponen || "N/A"}).
-        3. Berikan 3-5 langkah rekomendasi praktis untuk mengurangi konsumsi di area tersebut.`;
+    const prompt = `Anda adalah asisten ahli analisis data konsumsi air.\nData Laporan Konsumsi Bulanan (Total):\n${dataLaporanBulanan}\nData Top 10 Konsumen Teratas (berdasarkan filter: ${filterVolume}):\n${dataLaporanTop}\nTugas:\n1. Berikan analisis singkat dari data di atas.\n2. Fokus pada lonjakan terbesar dan konsumen teratas.\n3. Berikan 3-5 langkah rekomendasi praktis.`;
 
     try {
-      // 5. Panggil model
       const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const text = response.text();
-      console.log("Rekomendasi AI Diterima:", response); // Log respons
       setAiRecommendation(text);
+      await AsyncStorage.setItem(STORAGE_KEY_DATE, todayDateStr);
+      await AsyncStorage.setItem(STORAGE_KEY_DATA, text);
     } catch (error) {
-      console.error("Error fetching AI recommendation:", error);
-      console.log("Prompt yang gagal:", prompt);
-      setAiRecommendation("Gagal mendapatkan rekomendasi. Silakan coba lagi.");
+      if (!aiRecommendation)
+        setAiRecommendation("Gagal mendapatkan rekomendasi.");
     } finally {
       setIsAiLoading(false);
     }
-  }, [
-    monthlyConsumptionData,
-    topKomponenData,
-    filterVolume,
-    //isAiLoading DIHAPUS
-    //genAI juga bisa dihapus karena sudah stabil (didefinisikan di luar)
-  ]);
+  }, [monthlyConsumptionData, topKomponenData, filterVolume]);
 
   useEffect(() => {
     getAiRecommendation();
@@ -571,13 +484,9 @@ export default function HomeTabAir() {
 
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
+      {/* ringkasan bulanan/card */}
       <View style={styles.container}>
         <Text style={styles.header2}>{t("progress_title")}</Text>
-        {/* {isLoading ? (
-            <Text>Loading...</Text>
-          ) : isError ? (
-            <Text>Error fetching data</Text>
-          ) : ( */}
         <FlatList
           ref={flatListRef}
           horizontal
@@ -598,6 +507,8 @@ export default function HomeTabAir() {
           onMomentumScrollEnd={handleScrollEnd}
         />
       </View>
+
+      {/* chart/grafik */}
       <View style={styles.graphSection}>
         <Text style={styles.header2}>{`${t(
           "water_usage_chart"
@@ -619,13 +530,6 @@ export default function HomeTabAir() {
             ))}
           </View>
         </View>
-        {/* {isLoading ? ( */}
-        {/* <ActivityIndicator size="large" color="#007bff" /> */}
-        {/* ) : isError ? (
-              <Text style={{ color: "red", marginTop: 10 }}>
-                Gagal memuat data. Silakan coba lagi.
-              </Text>
-            ) : ( */}
         <View style={{ flexDirection: "row" }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View>
@@ -640,13 +544,14 @@ export default function HomeTabAir() {
                 bezier
                 onDataPointClick={({ value, x, y }) => {
                   setTooltipPos({ x, y, value, visible: true });
-                  setTimeout(() => {
-                    setTooltipPos((prev) => ({ ...prev, visible: false }));
-                  }, 1000);
+                  setTimeout(
+                    () =>
+                      setTooltipPos((prev) => ({ ...prev, visible: false })),
+                    1000
+                  );
                 }}
                 style={styles.chart}
               />
-
               {tooltipPos.visible && (
                 <View
                   style={{
@@ -666,13 +571,12 @@ export default function HomeTabAir() {
             </View>
           </ScrollView>
         </View>
-        {/* )} */}
       </View>
 
+      {/* top sensor */}
       <View style={styles.container}>
         <Text style={styles.header2}>{t("top_Sensor_title")}</Text>
         <Text style={styles.label2}>{t("sort_by")}</Text>
-
         <View style={styles.segmentedContainer}>
           {["volume", "lokasi", "tanggal"].map((item) => (
             <TouchableOpacity
@@ -696,176 +600,117 @@ export default function HomeTabAir() {
         </View>
       </View>
 
-      <>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View>
-            {/* Header */}
-            <View style={stylesTable.tableRowHeader}>
-              <Text style={[stylesTable.cellHeader, { width: 50 }]}>No</Text>
-              <Text style={[stylesTable.cellHeader, { width: 120 }]}>
-                No Komponen
-              </Text>
-              <Text style={[stylesTable.cellHeader, { width: 150 }]}>
-                Lokasi
-              </Text>
-              <Text style={[stylesTable.cellHeader, { width: 160 }]}>
-                Total Volume Air
-              </Text>
-              <Text style={[stylesTable.cellHeader, { width: 200 }]}>
-                Tanggal
-              </Text>
-              <Text style={[stylesTable.cellHeader, { width: 150 }]}>
-                Perkiraan Biaya
-              </Text>
-            </View>
-
-            {/* Body */}
-            {/* INI ADALAH BLOK YANG SUDAH DIPERBAIKI DARI LANGKAH 1 */}
-            {topKomponenData.map((item, index) => {
-              const perkiraanBiaya =
-                parseFloat(item.TotalVolumeAir) * HARGA_PER_M3;
-
-              return (
-                <View key={index} style={stylesTable.tableRow}>
-                  <Text style={[stylesTable.cell, { width: 50 }]}>
-                    {index + 1}
-                  </Text>
-                  <Text
-                    style={[stylesTable.cell, { width: 120 }]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {item.NoKomponen}
-                  </Text>
-                  <Text
-                    style={[stylesTable.cell, { width: 150 }]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {item.Lokasi || "-"}
-                  </Text>
-                  <Text style={[stylesTable.cell, { width: 160 }]}>
-                    {parseFloat(item.TotalVolumeAir).toFixed(2)}
-                  </Text>
-                  <Text
-                    style={[stylesTable.cell, { width: 200 }]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {new Date(item.Tanggal).toLocaleString("id-ID", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </Text>
-                  <Text
-                    style={[stylesTable.cell, { width: 150 }]}
-                    numberOfLines={1}
-                  >
-                    {`Rp ${perkiraanBiaya.toLocaleString("id-ID")}`}
-                  </Text>
-                </View>
-              );
-            })}
+      {/* --- tabel top sensor --- */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true}>
+        <View>
+          {/* sama kaya laporan bulanan */}
+          <View style={stylesTable.tableRowHeader}>
+            <Text style={[stylesTable.cellHeader, { width: 50 }]}>No</Text>
+            <Text style={[stylesTable.cellHeader, { width: 120 }]}>No Komponen</Text>
+            <Text style={[stylesTable.cellHeader, { width: 150 }]}>Lokasi</Text>
+            <Text style={[stylesTable.cellHeader, { width: 160 }]}>Total Volume Air</Text>
+            <Text style={[stylesTable.cellHeader, { width: 200 }]}>Tanggal</Text>
+            <Text style={[stylesTable.cellHeader, { width: 150 }]}>Perkiraan Biaya</Text>
           </View>
-        </ScrollView>
-      </>
 
-      {/* --- INI ADALAH BLOK TABEL BULANAN BARU ANDA --- */}
-      <View style={styles.container}>
-        <Text style={styles.header2}>
-          {t("Laporan Konsumsi & Biaya Bulanan")}
-        </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View>
-            {/* Header Tabel Bulanan */}
-            <View style={stylesTable.tableRowHeader}>
-              <Text style={[stylesTable.cellHeader, { width: 100 }]}>
-                Bulan
-              </Text>
-              <Text style={[stylesTable.cellHeader, { width: 150 }]}>
-                Total Konsumsi (m³)
-              </Text>
-              <Text style={[stylesTable.cellHeader, { width: 170 }]}>
-                Perkiraan Biaya
-              </Text>
-              <Text style={[stylesTable.cellHeader, { width: 170 }]}>
-                Perbandingan Volume
-              </Text>
-              <Text style={[stylesTable.cellHeader, { width: 170 }]}>
-                Perbandingan Biaya
-              </Text>
-            </View>
-
-            {/* Body Tabel Bulanan */}
-            {monthlyConsumptionData.map((totalKonsumsi, index) => {
-              // Hanya tampilkan jika ada data
-              if (totalKonsumsi === 0 && index > currentMonthIndex) {
-                return null;
-              }
-
-              const biaya = totalKonsumsi * HARGA_PER_M3;
-              const konsumsiBulanLalu =
-                index > 0 ? monthlyConsumptionData[index - 1] : 0;
-              const biayaBulanLalu = konsumsiBulanLalu * HARGA_PER_M3;
-
-              const perbandinganVolume = totalKonsumsi - konsumsiBulanLalu;
-              const perbandinganBiaya = biaya - biayaBulanLalu;
-
-              // Tentukan warna
-              const isNaik = perbandinganVolume > 0;
-              const colorStyle = isNaik ? { color: "red" } : { color: "green" };
-
+          {/* sama kaya laporan bulanan */}
+          <ScrollView style={{ maxHeight: 300 }} nestedScrollEnabled={true}>
+            {topKomponenData.map((item, index) => {
+              const perkiraanBiaya = parseFloat(item.TotalVolumeAir) * HARGA_PER_M3;
               return (
                 <View key={index} style={stylesTable.tableRow}>
-                  <Text style={[stylesTable.cell, { width: 100 }]}>
-                    {months[index]}
+                  <Text style={[stylesTable.cell, { width: 50 }]}>{index + 1}</Text>
+                  <Text style={[stylesTable.cell, { width: 120 }]} numberOfLines={1}>{item.NoKomponen}</Text>
+                  <Text style={[stylesTable.cell, { width: 150 }]} numberOfLines={1}>{item.Lokasi || "-"}</Text>
+                  <Text style={[stylesTable.cell, { width: 160 }]}>{parseFloat(item.TotalVolumeAir).toFixed(2)}</Text>
+                  <Text style={[stylesTable.cell, { width: 200 }]} numberOfLines={1}>
+                    {new Date(item.Tanggal).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                   </Text>
-                  <Text style={[stylesTable.cell, { width: 150 }]}>
-                    {totalKonsumsi.toFixed(2)}
-                  </Text>
-                  <Text
-                    style={[stylesTable.cell, { width: 170 }]}
-                  >{`Rp ${biaya.toLocaleString("id-ID")}`}</Text>
-                  <Text
-                    style={[
-                      stylesTable.cell,
-                      { width: 170 },
-                      perbandinganVolume !== 0 && colorStyle,
-                    ]}
-                  >
-                    {perbandinganVolume === 0 || index === 0
-                      ? "-"
-                      : `${isNaik ? "+" : ""}${perbandinganVolume.toFixed(2)}`}
-                  </Text>
-                  <Text
-                    style={[
-                      stylesTable.cell,
-                      { width: 170 },
-                      perbandinganBiaya !== 0 && colorStyle,
-                    ]}
-                  >
-                    {perbandinganBiaya === 0 || index === 0
-                      ? "-"
-                      : `Rp ${
-                          isNaik ? "+" : ""
-                        }${perbandinganBiaya.toLocaleString("id-ID")}`}
-                  </Text>
+                  <Text style={[stylesTable.cell, { width: 150 }]}>{`Rp ${perkiraanBiaya.toLocaleString("id-ID")}`}</Text>
                 </View>
               );
             })}
+          </ScrollView>
+        </View>
+      </ScrollView>
+
+      {/* --- tabel laporan bulanan --- */}
+      <View style={styles.container}>
+        <Text style={styles.header2}>{t("Laporan Konsumsi & Biaya Bulanan")}</Text>
+        
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled={true}>
+          <View>
+            {/* header tetap */}
+            <View style={stylesTable.tableRowHeader}>
+              <Text style={[stylesTable.cellHeader, { width: 100 }]}>Bulan</Text>
+              <Text style={[stylesTable.cellHeader, { width: 150 }]}>Total Konsumsi (m³)</Text>
+              <Text style={[stylesTable.cellHeader, { width: 170 }]}>Perkiraan Biaya</Text>
+              <Text style={[stylesTable.cellHeader, { width: 170 }]}>Perbandingan Volume</Text>
+              <Text style={[stylesTable.cellHeader, { width: 170 }]}>Perbandingan Biaya</Text>
+            </View>
+
+            {/* body scroll */}
+            <ScrollView style={{ maxHeight: 300 }} nestedScrollEnabled={true}>
+              {monthlyConsumptionData.map((totalKonsumsi, index) => {
+                if (totalKonsumsi === 0 && index > currentMonthIndex) return null;
+
+                const bulanIni = months[index];
+                const bulanLaluName = index > 0 ? months[index - 1] : "-";
+                const biaya = totalKonsumsi * HARGA_PER_M3;
+                const konsumsiBulanLalu = index > 0 ? monthlyConsumptionData[index - 1] : 0;
+                const biayaBulanLalu = konsumsiBulanLalu * HARGA_PER_M3;
+                const perbandinganVolume = totalKonsumsi - konsumsiBulanLalu;
+                const perbandinganBiaya = biaya - biayaBulanLalu;
+
+                const isVolumeNaik = perbandinganVolume > 0;
+                const colorVolume = isVolumeNaik ? "#d9534f" : "#28a745";
+                const isBiayaNaik = perbandinganBiaya > 0;
+                const colorBiaya = isBiayaNaik ? "#d9534f" : "#28a745";
+
+                return (
+                  <View key={index} style={stylesTable.tableRow}>
+                    <Text style={[stylesTable.cell, { width: 100 }]}>{months[index]}</Text>
+                    <Text style={[stylesTable.cell, { width: 150 }]}>{totalKonsumsi.toFixed(2)}</Text>
+                    <Text style={[stylesTable.cell, { width: 170 }]}>{`Rp ${biaya.toLocaleString("id-ID")}`}</Text>
+
+                    {/* perbandingan Volume */}
+                    <TouchableOpacity
+                      style={[stylesTable.cell, { width: 170, justifyContent: "center", alignItems: "center" }]}
+                      onLongPress={() => handleShowDetail(bulanIni, bulanLaluName, totalKonsumsi, konsumsiBulanLalu, "Volume")}
+                      delayLongPress={500}
+                    >
+                      {index === 0 ? <Text>-</Text> : perbandinganVolume === 0 ? <Text style={{ color: "gray" }}>-</Text> : (
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                          <MaterialIcons name={isVolumeNaik ? "arrow-drop-up" : "arrow-drop-down"} size={24} color={colorVolume} />
+                          <Text style={{ color: colorVolume, fontWeight: "bold" }}>{Math.abs(perbandinganVolume).toFixed(2)}</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+
+                    {/* perbandingan Biaya */}
+                    <TouchableOpacity
+                      style={[stylesTable.cell, { width: 170, justifyContent: "center", alignItems: "center" }]}
+                      onLongPress={() => handleShowDetail(bulanIni, bulanLaluName, biaya, biayaBulanLalu, "Biaya")}
+                      delayLongPress={500}
+                    >
+                      {index === 0 ? <Text>-</Text> : perbandinganBiaya === 0 ? <Text style={{ color: "gray" }}>-</Text> : (
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                          <MaterialIcons name={isBiayaNaik ? "arrow-drop-up" : "arrow-drop-down"} size={24} color={colorBiaya} />
+                          <Text style={{ color: colorBiaya, fontWeight: "bold" }}>{`Rp ${Math.abs(perbandinganBiaya).toLocaleString("id-ID")}`}</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+            </ScrollView>
           </View>
         </ScrollView>
       </View>
-      {/* --- AKHIR BLOK TABEL BULANAN --- */}
 
-      {/* --- BLOK AI REKOMENDASI (OTOMATIS) --- */}
+      {/* ai recommendation */}
       <View style={styles.container}>
         <Text style={styles.header2}>Rekomendasi AI</Text>
-
-        {/* Tampilkan loading indicator */}
         {isAiLoading && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#007bff" />
@@ -874,15 +719,11 @@ export default function HomeTabAir() {
             </Text>
           </View>
         )}
-
-        {/* Tampilkan hasil jika sudah selesai loading DAN ada isinya */}
         {!isAiLoading && aiRecommendation && (
           <View style={styles.aiResultContainer}>
             <Text style={styles.aiResultText}>{aiRecommendation}</Text>
           </View>
         )}
-
-        {/* Tampilkan pesan ini jika tidak loading DAN tidak ada hasil (misal data belum siap) */}
         {!isAiLoading && !aiRecommendation && (
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>
@@ -891,7 +732,106 @@ export default function HomeTabAir() {
           </View>
         )}
       </View>
-      {/* --- AKHIR BLOK AI REKOMENDASI --- */}
+
+      {/* modal detail */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Detail Perbandingan</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <MaterialIcons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+            {selectedComparison && (
+              <View style={styles.modalBody}>
+                <Text style={styles.modalText}>
+                  Jenis Data:{" "}
+                  <Text style={{ fontWeight: "bold" }}>
+                    {selectedComparison.type}
+                  </Text>
+                </Text>
+                <View style={styles.comparisonBox}>
+                  <View style={styles.comparisonRow}>
+                    <Text style={styles.compLabel}>
+                      Bulan Ini ({selectedComparison.currMonth}):
+                    </Text>
+                    <Text style={styles.compValue}>
+                      {selectedComparison.type === "Biaya" ? "Rp " : ""}
+                      {selectedComparison.currVal.toLocaleString("id-ID")}
+                      {selectedComparison.type === "Volume" ? " m³" : ""}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.comparisonRow,
+                      {
+                        borderBottomWidth: 1,
+                        borderColor: "#ccc",
+                        paddingBottom: 5,
+                        marginBottom: 5,
+                      },
+                    ]}
+                  >
+                    <Text style={styles.compLabel}>
+                      Bulan Lalu ({selectedComparison.prevMonth}):
+                    </Text>
+                    <Text style={styles.compValue}>
+                      {selectedComparison.type === "Biaya" ? "Rp " : ""}
+                      {selectedComparison.prevVal.toLocaleString("id-ID")}
+                      {selectedComparison.type === "Volume" ? " m³" : ""}
+                    </Text>
+                  </View>
+                  <View style={styles.comparisonRow}>
+                    <Text style={[styles.compLabel, { fontWeight: "bold" }]}>
+                      Selisih / Perubahan:
+                    </Text>
+                    <Text
+                      style={[
+                        styles.compValue,
+                        {
+                          fontWeight: "bold",
+                          color:
+                            selectedComparison.diff > 0 ? "#d9534f" : "#28a745",
+                        },
+                      ]}
+                    >
+                      {selectedComparison.diff > 0 ? "+" : ""}
+                      {selectedComparison.type === "Biaya" ? "Rp " : ""}
+                      {selectedComparison.diff.toLocaleString("id-ID")}
+                      {selectedComparison.type === "Volume" ? " m³" : ""}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.infoNote}>
+                  *Angka berwarna{" "}
+                  <Text style={{ color: "#d9534f", fontWeight: "bold" }}>
+                    Merah
+                  </Text>{" "}
+                  menandakan kenaikan konsumsi/biaya dibandingkan bulan
+                  sebelumnya (Indikasi Boros).
+                </Text>
+                <Text style={styles.infoNote}>
+                  *Angka berwarna{" "}
+                  <Text style={{ color: "#28a745", fontWeight: "bold" }}>
+                    Hijau
+                  </Text>{" "}
+                  menandakan penurunan konsumsi/biaya dibandingkan bulan
+                  sebelumnya (Indikasi Hemat).
+                </Text>
+              </View>
+            )}
+          </View>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }
@@ -903,7 +843,6 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     gap: 10,
   },
-
   segmentedButton: {
     borderWidth: 1,
     borderColor: "#007bff",
@@ -912,24 +851,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: "#fff",
   },
-
-  segmentedButtonActive: {
-    backgroundColor: "#007bff",
-  },
-
-  segmentedButtonText: {
-    color: "#007bff",
-    fontWeight: "500",
-  },
-
-  segmentedButtonTextActive: {
-    color: "#fff",
-  },
-  container: {
-    padding: 16,
-    backgroundColor: "#f8f9fa",
-    flex: 1,
-  },
+  segmentedButtonActive: { backgroundColor: "#007bff" },
+  segmentedButtonText: { color: "#007bff", fontWeight: "500" },
+  segmentedButtonTextActive: { color: "#fff" },
+  container: { padding: 16, backgroundColor: "#f8f9fa", flex: 1 },
   header2: {
     fontSize: 20,
     fontWeight: "bold",
@@ -940,75 +865,21 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: "center",
   },
-  label2: {
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  picker: {
-    height: 50,
-    marginBottom: 16,
-    backgroundColor: "#fff",
-  },
-  error: {
-    color: "red",
-    fontSize: 16,
-    textAlign: "center",
-  },
-  tableRowHeader: {
-    flexDirection: "row",
-    backgroundColor: "#007bff",
-    padding: 8,
-  },
-  tableRow: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    padding: 8,
-    borderBottomWidth: 1,
-    borderColor: "#dee2e6",
-  },
-  cellHeader: {
-    fontWeight: "bold",
-    color: "black",
-    padding: 8,
-    minWidth: 120,
-    fontSize: 12,
-    textAlign: "center",
-  },
-  cell: {
-    padding: 8,
-    minWidth: 120,
-    textAlign: "center",
-  },
-  tableRow: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-  },
-  tableRowHeader: {
-    flexDirection: "row",
-    backgroundColor: "#f2f2f2",
-    borderBottomWidth: 2,
-    borderBottomColor: "#aaa",
-  },
+  label2: { fontSize: 16, marginBottom: 8 },
+  error: { color: "red", fontSize: 16, textAlign: "center" },
   card: {
     backgroundColor: "#f5f5f5",
     borderRadius: 16,
     padding: 16,
     elevation: 4,
   },
-  header: {
-    fontWeight: "bold",
-    fontSize: 16,
-    marginBottom: 12,
-  },
+  header: { fontWeight: "bold", fontSize: 16, marginBottom: 12 },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 8,
   },
-  label: {
-    fontWeight: "500",
-  },
+  label: { fontWeight: "500" },
   graphSection: {
     marginTop: 24,
     backgroundColor: "#fff",
@@ -1016,15 +887,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     elevation: 3,
   },
-  graphTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 12,
-    textAlign: "center",
-  },
-  dropdownContainer: {
-    marginBottom: 16,
-  },
+  dropdownContainer: { marginBottom: 16 },
   buttonRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -1038,45 +901,67 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     color: "#007BFF",
   },
-  activeButton: {
-    backgroundColor: "#007BFF",
-    color: "white",
-  },
-  chart: {
-    borderRadius: 12,
-    fontSize: 1,
-  },
-  // ... styles.chart ...
-  chart: {
-    borderRadius: 12,
-    fontSize: 1,
-  },
-  // --- PINDAHKAN STYLE DARI STYLES TABLE KE SINI ---
+  activeButton: { backgroundColor: "#007BFF", color: "white" },
+  chart: { borderRadius: 12, fontSize: 1 },
   aiResultContainer: {
-    backgroundColor: "#e9f7ff", // Biru muda
+    backgroundColor: "#e9f7ff",
     borderLeftWidth: 5,
     borderLeftColor: "#007bff",
     padding: 15,
     marginTop: 10,
     borderRadius: 5,
   },
-  aiResultText: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: "#333",
-  },
-  // --- TAMBAHKAN STYLE INI UNTUK LOADING ---
+  aiResultText: { fontSize: 15, lineHeight: 22, color: "#333" },
   loadingContainer: {
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
     minHeight: 100,
   },
-  loadingText: {
-    marginTop: 10,
-    color: "#666",
-    fontStyle: "italic",
+  loadingText: { marginTop: 10, color: "#666", fontStyle: "italic" },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
+  modalContent: {
+    width: "85%",
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 20,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+    paddingBottom: 10,
+  },
+  modalTitle: { fontSize: 18, fontWeight: "bold", color: "#007bff" },
+  modalBody: { gap: 10 },
+  modalText: { fontSize: 16, marginBottom: 5 },
+  comparisonBox: {
+    backgroundColor: "#f8f9fa",
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  comparisonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 5,
+  },
+  compLabel: { color: "#555", flex: 1 },
+  compValue: { fontWeight: "500", color: "#000" },
+  infoNote: { fontSize: 12, color: "#666", fontStyle: "italic", marginTop: 5 },
 });
 
 const stylesTable = StyleSheet.create({
@@ -1086,22 +971,16 @@ const stylesTable = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: "#aaa",
   },
-
   tableRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
   },
-
   cellHeader: {
     fontWeight: "bold",
     padding: 8,
     textAlign: "center",
     backgroundColor: "#eaeaea",
   },
-
-  cell: {
-    padding: 8,
-    textAlign: "center",
-  },
+  cell: { padding: 8, textAlign: "center" },
 });

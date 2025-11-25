@@ -23,7 +23,7 @@ import FormLayoutHistory from "../../../components/FormLayoutHistory";
 
 // Styles and API
 import { stylesB, stylesDetail } from "../../../styles/globalStyles";
-import { postUser, postUserArray, postUserArray } from "../../../services/apiService";
+import { postUser, postUserArray } from "../../../services/apiService";
 import { formatDateOnly } from "../../../Util/Formatting";
 
 const LokasiSensorDetail = () => {
