@@ -16,7 +16,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { postUser, postUserArray } from "../../services/apiService";
+import { postUser, postUserArray, postUserArray } from "../../services/apiService";
 //import { GoogleGenAI } from "@google/genai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 //import OpenAI from "openai";
@@ -128,12 +128,10 @@ export default function HomeTabAir() {
         setIsError(false);
         try {
           const [a, b, c, d] = await Promise.all([
-            postUser("Dashboard/GetDataChartMonthly", { year: currentYear }),
-            postUserArray("Dashboard/GetDataAktualIndividu", {
-              year: currentYear,
-            }),
-            postUser("Dashboard/GetDataTargetIndividu", { year: currentYear }),
-            postUser("Dashboard/GetTargetReduction", {}),
+            postUserArray("Dashboard/GetDataChartMonthly", { year: currentYear }),
+            postUserArray("Dashboard/GetDataAktualIndividu", {year: currentYear,}),
+            postUserArray("Dashboard/GetDataTargetIndividu", { year: currentYear }),
+            postUserArray("Dashboard/GetTargetReduction", {}),
           ]);
 
           // console.log("Type of c:", typeof c);
